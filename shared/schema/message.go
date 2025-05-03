@@ -2,7 +2,7 @@ package schema
 
 const JSON_RPC_VERSION = "2.0"
 
-type JsonRpcRequeststruct[T any] struct {
+type JsonRpcRequest[T any] struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Id      string `json:"id"`
 	Method  string `json:"method"`
