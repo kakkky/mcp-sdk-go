@@ -11,30 +11,41 @@ type JsonRpcMessage interface {
 type JsonRpcRequest struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Id      string `json:"id"`
-	Method  string `json:"method"`
-	Params  any    `json:"params"`
+	Request
 }
-
-func (r JsonRpcRequest) JsoRpcnMessage() {}
 
 type JsonRpcNotification struct {
 	Jsonrpc string `json:"jsonrpc"`
-	Method  string `json:"method"`
+	Notification
 }
-
-func (n JsonRpcNotification) JsonRpcMessage() {}
 
 type JsonRpcResponse struct {
-	Jsonrpc string        `json:"jsonrpc"`
-	Id      string        `json:"id"`
-	Result  any           `json:"result"`
-	Error   *JsonRpcError `json:"error,omitempty"`
+	Jsonrpc string `json:"jsonrpc"`
+	Id      string `json:"id"`
+	Result
 }
-
-func (r JsonRpcResponse) JsonRpcMessage() {}
 
 type JsonRpcError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
+	Code    errorCode `json:"code"`
+	Message string    `json:"message"`
+	Data    any       `json:"data,omitempty"`
 }
+
+type errorCode int
+
+const (
+	// Custom error codes
+	CONNECTION_CLOSED = -32000
+	REQUEST_TIMEOUT   = -32001
+
+	// Standard JSON-RPC error codes
+	PARSE_ERROR      = -32700
+	INVALID_REQUEST  = -32600
+	METHOD_NOT_FOUND = -32601
+	INVALID_PARAMS   = -32602
+	INTERNAL_ERROR   = -32603
+)
+
+func (r JsonRpcRequest) JsoRpcnMessage()      {}
+func (n JsonRpcNotification) JsonRpcMessage() {}
+func (r JsonRpcResponse) JsonRpcMessage()     {}
