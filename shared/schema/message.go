@@ -26,12 +26,12 @@ type JsonRpcResponse struct {
 }
 
 type JsonRpcError struct {
-	Code    errorCode `json:"code"`
-	Message string    `json:"message"`
-	Data    any       `json:"data,omitempty"`
+	Code    errCode `json:"code"`
+	Message string  `json:"message"`
+	Data    any     `json:"data,omitempty"`
 }
 
-type errorCode int
+type errCode int
 
 const (
 	// Custom error codes
@@ -46,6 +46,7 @@ const (
 	INTERNAL_ERROR   = -32603
 )
 
-func (r JsonRpcRequest) JsoRpcnMessage()      {}
+func (r JsonRpcRequest) JsonRpcMessage()      {}
 func (n JsonRpcNotification) JsonRpcMessage() {}
 func (r JsonRpcResponse) JsonRpcMessage()     {}
+func (e JsonRpcError) JsonRpcMessage()        {}
