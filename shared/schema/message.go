@@ -2,26 +2,39 @@ package schema
 
 const JSON_RPC_VERSION = "2.0"
 
-type JsonRpcRequest[T any] struct {
+// Request , Notification, Response の抽象型。
+// JsonRpcMessage()メソッド自体は意味をなさない。
+type JsonRpcMessage interface {
+	JsonRpcMessage()
+}
+
+type JsonRpcRequest struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Id      string `json:"id"`
 	Method  string `json:"method"`
-	Params  T      `json:"params"`
+	Params  any    `json:"params"`
 }
+
+func (r JsonRpcRequest) JsoRpcnMessage() {}
 
 type JsonRpcNotification struct {
-	Jsonrc string `json:"jsonrpc"`
-	Method string `json:"method"`
+	Jsonrpc string `json:"jsonrpc"`
+	Method  string `json:"method"`
 }
 
-type JsonRpcResponse[T, U any] struct {
-	Jsonrpc string           `json:"jsonrpc"`
-	Id      string           `json:"id"`
-	Result  T                `json:"result"`
-	Error   *JsonRpcError[U] `json:"error,omitempty"`
+func (n JsonRpcNotification) JsonRpcMessage() {}
+
+type JsonRpcResponse struct {
+	Jsonrpc string        `json:"jsonrpc"`
+	Id      string        `json:"id"`
+	Result  any           `json:"result"`
+	Error   *JsonRpcError `json:"error,omitempty"`
 }
-type JsonRpcError[T any] struct {
+
+func (r JsonRpcResponse) JsonRpcMessage() {}
+
+type JsonRpcError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
-	Data    T      `json:"data,omitempty"`
+	Data    any    `json:"data,omitempty"`
 }
