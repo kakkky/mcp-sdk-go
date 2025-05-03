@@ -1,4 +1,4 @@
-package tansport
+package protocol
 
 import "github.com/kakkky/mcp-sdk-go/shared/schema"
 

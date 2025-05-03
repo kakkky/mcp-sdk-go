@@ -5,6 +5,7 @@ import (
 )
 
 type Protocol struct {
+	transport            Transport
 	requestHandlers      map[string]requestHandler
 	notificationHandlers map[string]notificationHandler
 	responseHandlers     map[int]responseHandler
