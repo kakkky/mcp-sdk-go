@@ -69,7 +69,12 @@ func (p *Protocol) onResponse(response schema.JsonRpcResponse) {
 		return
 	}
 	defer delete(p.handlers.responseHandlers, messageId)
-	handler(&response, nil)
+	result, err := handler(&response, nil)
+	if err != nil {
+		p.errCh <- err
+		return
+	}
+	p.resultCh <- result
 }
 
 func (p *Protocol) onErrResponse(errResponse schema.JsonRpcError) {
@@ -80,7 +85,8 @@ func (p *Protocol) onErrResponse(errResponse schema.JsonRpcError) {
 		return
 	}
 	defer delete(p.handlers.responseHandlers, messageId)
-	handler(nil, mcp_err.NewMcpErr(errResponse.Error.Code, errResponse.Error.Message, errResponse.Error.Data))
+	err := mcp_err.NewMcpErr(errResponse.Error.Code, errResponse.Error.Message, errResponse.Error.Data)
+	p.errCh <- err
 }
 
 func (p *Protocol) onNotification(notification schema.JsonRpcNotification) {

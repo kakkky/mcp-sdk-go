@@ -18,7 +18,7 @@ type requestHandler = func(request schema.JsonRpcRequest) (schema.Result, *mcp_e
 
 type notificationHandler = func(notification schema.JsonRpcNotification) error
 
-type responseHandler = func(response *schema.JsonRpcResponse, mcpErr error) error
+type responseHandler = func(response *schema.JsonRpcResponse, mcpErr error) (*schema.Result, error)
 
 func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler requestHandler) {
 	method := requestSchema.Method
