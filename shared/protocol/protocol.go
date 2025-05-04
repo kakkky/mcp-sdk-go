@@ -3,6 +3,7 @@ package protocol
 import (
 	"errors"
 
+	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
@@ -14,17 +15,33 @@ type Protocol struct {
 }
 
 func NewProtocol() *Protocol {
-	return &Protocol{
+	p := &Protocol{
 		handlers: handlers{
 			requestHandlers:      make(map[string]requestHandler),
 			notificationHandlers: make(map[string]notificationHandler),
 			responseHandlers:     make(map[int]responseHandler),
 		},
 	}
+	p.onClose = func() {
+		responseHandlers := p.handlers.responseHandlers
+		err := mcp_err.McpError(mcp_err.CONNECTION_CLOSED, "connection closed")
+		for _, handler := range responseHandlers {
+			handler(nil, err)
+		}
+		p.handlers.responseHandlers = make(map[int]responseHandler)
+		p.transport = nil
+
+	}
+	p.onError = func(err error) {}
+
+	return p
 }
 
 func (p *Protocol) SetOnClose(onClose func()) {
-	p.onClose = onClose
+	p.onClose = func() {
+		p.onClose()
+		onClose()
+	}
 }
 
 func (p *Protocol) SetOnError(onError func(error)) {
