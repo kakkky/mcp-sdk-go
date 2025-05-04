@@ -116,3 +116,17 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (*schema.Re
 		return nil, err
 	}
 }
+
+func (p *Protocol) Notificate(notification schema.Notification) error {
+	if p.transport == nil {
+		return fmt.Errorf("not connected")
+	}
+	jsonRpcNotification := schema.JsonRpcNotification{
+		Jsonrpc:      schema.JSON_RPC_VERSION,
+		Notification: notification,
+	}
+	if err := p.transport.sendMessage(jsonRpcNotification); err != nil {
+		return err
+	}
+	return nil
+}
