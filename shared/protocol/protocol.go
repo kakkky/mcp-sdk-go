@@ -59,7 +59,7 @@ func (p *Protocol) Connect(transport transport) {
 		case schema.JsonRpcRequest:
 			p.onRequest(m)
 		case schema.JsonRpcNotification:
-			p.onNotification(m)
+			p.onNotification(&m)
 		default:
 			p.onError(errors.New("unknown message type"))
 		}
