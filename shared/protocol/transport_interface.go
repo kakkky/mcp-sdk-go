@@ -5,7 +5,7 @@ import "github.com/kakkky/mcp-sdk-go/shared/schema"
 type transport interface {
 	start()
 	close()
-	sendMessage(message schema.JsonRpcMessage)
+	sendMessage(message schema.JsonRpcMessage) error
 	onReceiveMessage(message schema.JsonRpcMessage)
 	onClose()
 	onError(error)

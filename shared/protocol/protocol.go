@@ -24,7 +24,7 @@ func NewProtocol() *Protocol {
 	}
 	p.onClose = func() {
 		responseHandlers := p.handlers.responseHandlers
-		err := mcp_err.McpError(mcp_err.CONNECTION_CLOSED, "connection closed")
+		err := mcp_err.NewMcpErr(mcp_err.CONNECTION_CLOSED, "connection closed")
 		for _, handler := range responseHandlers {
 			handler(nil, err)
 		}
@@ -59,7 +59,7 @@ func (p *Protocol) Connect(transport transport) {
 		case schema.JsonRpcRequest:
 			p.onRequest(m)
 		case schema.JsonRpcNotification:
-			p.onNotification(&m)
+			p.onNotification(m)
 		default:
 			p.onError(errors.New("unknown message type"))
 		}

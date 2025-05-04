@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
@@ -10,11 +11,12 @@ type handlers struct {
 	responseHandlers     map[int]responseHandler
 
 	fallbackNotificationHandler func()
+	fallbackRequestHandler      func()
 }
 
-type requestHandler = func(request *schema.JsonRpcRequest) error
+type requestHandler = func(request schema.JsonRpcRequest) (schema.Result, *mcp_err.McpErr)
 
-type notificationHandler = func(notification *schema.JsonRpcNotification) error
+type notificationHandler = func(notification schema.JsonRpcNotification) error
 
 type responseHandler = func(response *schema.JsonRpcResponse, mcpErr error) error
 
@@ -36,4 +38,7 @@ func (p *Protocol) SetResponseHandler(messageId int, handler responseHandler) {
 
 func (p *Protocol) SetFallbackNotificationHandler(handler func(), notification schema.Notification) {
 	p.handlers.fallbackNotificationHandler = handler
+}
+func (p *Protocol) SetFallbackRequestHandler(handler func(), request schema.Request) {
+	p.handlers.fallbackRequestHandler = handler
 }

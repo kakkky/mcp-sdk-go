@@ -4,8 +4,20 @@ import (
 	"fmt"
 )
 
-func McpError(errCode ErrCode, message string) error {
-	return fmt.Errorf("MCP Error: %d (%s)", errCode, message)
+type McpErr struct {
+	Code    ErrCode `json:"code"`
+	Message string  `json:"message"`
+}
+
+func NewMcpErr(code ErrCode, message string) *McpErr {
+	return &McpErr{
+		Code:    code,
+		Message: message,
+	}
+}
+
+func (e *McpErr) Error() string {
+	return fmt.Sprintf("MCP Error: %d (%s)", e.Code, e.Message)
 }
 
 type ErrCode int

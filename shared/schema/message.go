@@ -1,7 +1,5 @@
 package schema
 
-import "github.com/kakkky/mcp-sdk-go/shared/mcp_err"
-
 const JSON_RPC_VERSION = "2.0"
 
 // Request , Notification, Response の抽象型。
@@ -28,9 +26,9 @@ type JsonRpcResponse struct {
 }
 
 type JsonRpcError struct {
-	Code    mcp_err.ErrCode `json:"code"`
-	Message string          `json:"message"`
-	Data    any             `json:"data,omitempty"`
+	Jsonrpc string `json:"jsonrpc"`
+	Id      string `json:"id"`
+	Error   Error  `json:"error"`
 }
 
 func (r JsonRpcRequest) JsonRpcMessage()      {}
