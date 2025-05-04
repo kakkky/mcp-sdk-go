@@ -66,3 +66,7 @@ func (p *Protocol) Connect(transport transport) {
 		}
 	})
 }
+
+func (p *Protocol) Transport() transport {
+	return p.transport
+}
