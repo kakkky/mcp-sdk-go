@@ -1,11 +1,11 @@
 package protocol
 
 import (
+	"fmt"
+
 	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
-
-func (p *Protocol) onResponse(message schema.JsonRpcMessage) {}
 
 func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 	handler := p.handlers.requestHandlers[request.Method]
@@ -16,8 +16,10 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 	if handler == nil {
 		err := p.transport.sendMessage(
 			schema.JsonRpcError{
-				Jsonrpc: schema.JSON_RPC_VERSION,
-				Id:      request.Id,
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      request.Id,
+				},
 				Error: schema.Error{
 					Code:    mcp_err.METHOD_NOT_FOUND,
 					Message: "method not found",
@@ -34,8 +36,10 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 		code := err.Code
 		err := p.transport.sendMessage(
 			schema.JsonRpcError{
-				Jsonrpc: schema.JSON_RPC_VERSION,
-				Id:      request.Id,
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      request.Id,
+				},
 				Error: schema.Error{
 					Code:    code,
 					Message: err.Error(),
@@ -47,12 +51,36 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 		}
 	}
 	if err := p.transport.sendMessage(schema.JsonRpcResponse{
-		Jsonrpc: schema.JSON_RPC_VERSION,
-		Id:      request.Id,
-		Result:  result,
+		BaseMessage: schema.BaseMessage{
+			Jsonrpc: schema.JSON_RPC_VERSION,
+			Id:      request.Id,
+		},
+		Result: result,
 	}); err != nil {
 		p.onError(err)
 	}
+}
+
+func (p *Protocol) onResponse(response schema.JsonRpcResponse) {
+	messageId := response.Id
+	handler := p.handlers.responseHandlers[messageId]
+	if handler == nil {
+		p.onError(fmt.Errorf("received a response for an unknown message ID: %d", messageId))
+		return
+	}
+	defer delete(p.handlers.responseHandlers, messageId)
+	handler(&response, nil)
+}
+
+func (p *Protocol) onErrResponse(errResponse schema.JsonRpcError) {
+	messageId := errResponse.Id
+	handler := p.handlers.responseHandlers[messageId]
+	if handler == nil {
+		p.onError(fmt.Errorf("received a response for an unknown message ID: %d", messageId))
+		return
+	}
+	defer delete(p.handlers.responseHandlers, messageId)
+	handler(nil, mcp_err.NewMcpErr(errResponse.Error.Code, errResponse.Error.Message, errResponse.Error.Data))
 }
 
 func (p *Protocol) onNotification(notification schema.JsonRpcNotification) {

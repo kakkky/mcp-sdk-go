@@ -8,9 +8,13 @@ type JsonRpcMessage interface {
 	JsonRpcMessage()
 }
 
-type JsonRpcRequest struct {
+type BaseMessage struct {
 	Jsonrpc string `json:"jsonrpc"`
-	Id      string `json:"id"`
+	Id      int    `json:"id"`
+}
+
+type JsonRpcRequest struct {
+	BaseMessage
 	Request
 }
 
@@ -20,15 +24,13 @@ type JsonRpcNotification struct {
 }
 
 type JsonRpcResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Id      string `json:"id"`
+	BaseMessage
 	Result
 }
 
 type JsonRpcError struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Id      string `json:"id"`
-	Error   Error  `json:"error"`
+	BaseMessage
+	Error Error `json:"error"`
 }
 
 func (r JsonRpcRequest) JsonRpcMessage()      {}

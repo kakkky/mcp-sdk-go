@@ -7,12 +7,14 @@ import (
 type McpErr struct {
 	Code    ErrCode `json:"code"`
 	Message string  `json:"message"`
+	Data    any     `json:"data,omitempty"`
 }
 
-func NewMcpErr(code ErrCode, message string) *McpErr {
+func NewMcpErr(code ErrCode, message string, data any) *McpErr {
 	return &McpErr{
 		Code:    code,
 		Message: message,
+		Data:    data,
 	}
 }
 
