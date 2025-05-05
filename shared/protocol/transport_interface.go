@@ -2,6 +2,7 @@ package protocol
 
 import "github.com/kakkky/mcp-sdk-go/shared/schema"
 
+//go:generate  mockgen -source=transport_interface.go -destination=./transport_mock.go -package=protocol
 type transport interface {
 	start()
 	close()
@@ -14,5 +15,5 @@ type transport interface {
 	// 通信の基本的なイベントはProtocolにより注入される
 	setOnClose(onClose func())
 	setOnError(onError func(error))
-	setOnMessage(onMessage func(schema.JsonRpcMessage))
+	setOnReceiveMessage(onReceiveMessage func(schema.JsonRpcMessage))
 }

@@ -6,19 +6,18 @@ import (
 )
 
 type handlers struct {
-	requestHandlers      map[string]requestHandler
-	notificationHandlers map[string]notificationHandler
-	responseHandlers     map[int]responseHandler
-
+	requestHandlers             map[string]requestHandler
+	notificationHandlers        map[string]notificationHandler
+	responseHandlers            map[int]responseHandler
 	fallbackNotificationHandler func()
 	fallbackRequestHandler      func()
 }
 
-type requestHandler = func(request schema.JsonRpcRequest) (schema.Result, *mcp_err.McpErr)
+type requestHandler func(request schema.JsonRpcRequest) (schema.Result, *mcp_err.McpErr)
 
-type notificationHandler = func(notification schema.JsonRpcNotification) error
+type notificationHandler func(notification schema.JsonRpcNotification) error
 
-type responseHandler = func(response *schema.JsonRpcResponse, mcpErr error) (*schema.Result, error)
+type responseHandler func(response *schema.JsonRpcResponse, mcpErr error) (*schema.Result, error)
 
 func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler requestHandler) {
 	method := requestSchema.Method

@@ -1,7 +1,6 @@
 package protocol
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -11,10 +10,10 @@ import (
 
 type Protocol struct {
 	transport        transport
-	handlers         handlers
+	handlers         *handlers
+	requestMessageId int
 	onClose          func()
 	onError          func(error)
-	requestMessageId int
 
 	resultCh chan *schema.Result
 	errCh    chan error
@@ -22,7 +21,7 @@ type Protocol struct {
 
 func NewProtocol() *Protocol {
 	p := &Protocol{
-		handlers: handlers{
+		handlers: &handlers{
 			requestHandlers:      make(map[string]requestHandler),
 			notificationHandlers: make(map[string]notificationHandler),
 			responseHandlers:     make(map[int]responseHandler),
@@ -38,7 +37,6 @@ func NewProtocol() *Protocol {
 		}
 		p.handlers.responseHandlers = make(map[int]responseHandler)
 		p.transport = nil
-
 	}
 	p.onError = func(err error) {}
 
@@ -60,21 +58,8 @@ func (p *Protocol) Connect(transport transport) {
 	p.transport = transport
 	p.transport.setOnClose(p.onClose)
 	p.transport.setOnError(p.onError)
-	p.transport.setOnMessage(
-		func(message schema.JsonRpcMessage) {
-			switch m := message.(type) {
-			case schema.JsonRpcResponse:
-				p.onResponse(m)
-			case schema.JsonRpcError:
-				p.onErrResponse(m)
-			case schema.JsonRpcRequest:
-				p.onRequest(m)
-			case schema.JsonRpcNotification:
-				p.onNotification(m)
-			default:
-				p.onError(errors.New("unknown message type"))
-			}
-		})
+	p.transport.setOnReceiveMessage(p.onReceiveMessage)
+	p.transport.start()
 }
 
 func (p *Protocol) Transport() transport {
@@ -85,7 +70,8 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (*schema.Re
 	if p.transport == nil {
 		return nil, fmt.Errorf("not connected")
 	}
-	messageId := p.requestMessageId + 1
+	p.requestMessageId += 1
+	messageId := p.requestMessageId
 	jsonRpcRequest := schema.JsonRpcRequest{
 		BaseMessage: schema.BaseMessage{
 			Jsonrpc: schema.JSON_RPC_VERSION,
@@ -108,7 +94,7 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (*schema.Re
 	if err := p.transport.sendMessage(jsonRpcRequest); err != nil {
 		return nil, err
 	}
-	// レスポンスハンドラーからの結果を待つ
+	// 登録したレスポンスハンドラーからの結果を待つ
 	select {
 	case result := <-p.resultCh:
 		return result, nil

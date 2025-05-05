@@ -1,11 +1,29 @@
 package protocol
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
+
+func (p *Protocol) onReceiveMessage(message schema.JsonRpcMessage) {
+	go func() {
+		switch m := message.(type) {
+		case schema.JsonRpcResponse:
+			p.onResponse(m)
+		case schema.JsonRpcError:
+			p.onErrResponse(m)
+		case schema.JsonRpcRequest:
+			p.onRequest(m)
+		case schema.JsonRpcNotification:
+			p.onNotification(m)
+		default:
+			p.onError(errors.New("unknown message type"))
+		}
+	}()
+}
 
 func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 	handler := p.handlers.requestHandlers[request.Method]
@@ -65,10 +83,13 @@ func (p *Protocol) onResponse(response schema.JsonRpcResponse) {
 	messageId := response.Id
 	handler := p.handlers.responseHandlers[messageId]
 	if handler == nil {
-		p.onError(fmt.Errorf("received a response for an unknown message ID: %d", messageId))
+		err := fmt.Errorf("received a response for an unknown message ID: %d", messageId)
+		p.onError(err)
+		p.errCh <- err
 		return
 	}
 	defer delete(p.handlers.responseHandlers, messageId)
+	fmt.Println("onResponse", response)
 	result, err := handler(&response, nil)
 	if err != nil {
 		p.errCh <- err
