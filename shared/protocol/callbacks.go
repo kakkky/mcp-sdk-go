@@ -9,20 +9,21 @@ import (
 )
 
 func (p *Protocol) onReceiveMessage(message schema.JsonRpcMessage) {
-	go func() {
-		switch m := message.(type) {
-		case schema.JsonRpcResponse:
-			p.onResponse(m)
-		case schema.JsonRpcError:
-			p.onErrResponse(m)
-		case schema.JsonRpcRequest:
-			p.onRequest(m)
-		case schema.JsonRpcNotification:
-			p.onNotification(m)
-		default:
-			p.onError(errors.New("unknown message type"))
-		}
-	}()
+	switch m := message.(type) {
+	case schema.JsonRpcResponse:
+		fmt.Println("onReceiveMessage response", m)
+		p.onResponse(m)
+	case schema.JsonRpcError:
+		fmt.Println("onReceiveMessage error", m)
+		p.onErrResponse(m)
+	case schema.JsonRpcRequest:
+		fmt.Println("onReceiveMessage request", m)
+		p.onRequest(m)
+	case schema.JsonRpcNotification:
+		p.onNotification(m)
+	default:
+		p.onError(errors.New("unknown message type"))
+	}
 }
 
 func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
@@ -32,7 +33,7 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 		return
 	}
 	if handler == nil {
-		err := p.transport.sendMessage(
+		err := p.transport.SendMessage(
 			schema.JsonRpcError{
 				BaseMessage: schema.BaseMessage{
 					Jsonrpc: schema.JSON_RPC_VERSION,
@@ -52,7 +53,7 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 	result, err := handler(request)
 	if err != nil {
 		code := err.Code
-		err := p.transport.sendMessage(
+		err := p.transport.SendMessage(
 			schema.JsonRpcError{
 				BaseMessage: schema.BaseMessage{
 					Jsonrpc: schema.JSON_RPC_VERSION,
@@ -68,7 +69,7 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 			p.onError(err)
 		}
 	}
-	if err := p.transport.sendMessage(schema.JsonRpcResponse{
+	if err := p.transport.SendMessage(schema.JsonRpcResponse{
 		BaseMessage: schema.BaseMessage{
 			Jsonrpc: schema.JSON_RPC_VERSION,
 			Id:      request.Id,
@@ -85,14 +86,12 @@ func (p *Protocol) onResponse(response schema.JsonRpcResponse) {
 	if handler == nil {
 		err := fmt.Errorf("received a response for an unknown message ID: %d", messageId)
 		p.onError(err)
-		p.errCh <- err
 		return
 	}
 	defer delete(p.handlers.responseHandlers, messageId)
-	fmt.Println("onResponse", response)
 	result, err := handler(&response, nil)
 	if err != nil {
-		p.errCh <- err
+		p.onError(err)
 		return
 	}
 	p.resultCh <- result

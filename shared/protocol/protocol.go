@@ -16,7 +16,7 @@ type Protocol struct {
 	onError          func(error)
 
 	resultCh chan *schema.Result
-	errCh    chan error
+	errCh    chan *mcp_err.McpErr
 }
 
 func NewProtocol() *Protocol {
@@ -28,7 +28,7 @@ func NewProtocol() *Protocol {
 		},
 		requestMessageId: 0,
 		resultCh:         make(chan *schema.Result, 1),
-		errCh:            make(chan error, 1),
+		errCh:            make(chan *mcp_err.McpErr, 1),
 	}
 	p.onClose = func() {
 		responseHandlers := p.handlers.responseHandlers
@@ -56,10 +56,11 @@ func (p *Protocol) SetOnError(onError func(error)) {
 
 func (p *Protocol) Connect(transport transport) {
 	p.transport = transport
-	p.transport.setOnClose(p.onClose)
-	p.transport.setOnError(p.onError)
-	p.transport.setOnReceiveMessage(p.onReceiveMessage)
-	p.transport.start()
+	p.transport.SetOnClose(p.onClose)
+
+	p.transport.SetOnError(p.onError)
+	p.transport.SetOnReceiveMessage(p.onReceiveMessage)
+	p.transport.Start()
 }
 
 func (p *Protocol) Transport() transport {
@@ -91,7 +92,7 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (*schema.Re
 		return &result, nil
 	})
 	// リクエストの送信
-	if err := p.transport.sendMessage(jsonRpcRequest); err != nil {
+	if err := p.transport.SendMessage(jsonRpcRequest); err != nil {
 		return nil, err
 	}
 	// 登録したレスポンスハンドラーからの結果を待つ
@@ -111,7 +112,7 @@ func (p *Protocol) Notificate(notification schema.Notification) error {
 		Jsonrpc:      schema.JSON_RPC_VERSION,
 		Notification: notification,
 	}
-	if err := p.transport.sendMessage(jsonRpcNotification); err != nil {
+	if err := p.transport.SendMessage(jsonRpcNotification); err != nil {
 		return err
 	}
 	return nil
