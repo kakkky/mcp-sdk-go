@@ -31,12 +31,25 @@ func NewProtocol() *Protocol {
 		errCh:            make(chan *mcp_err.McpErr, 1),
 	}
 	p.onError = func(err error) {}
+	p.onClose = func() {
+		responseHandlers := p.handlers.responseHandlers
+		for _, handler := range responseHandlers {
+			handler(nil, mcp_err.NewMcpErr(mcp_err.CONNECTION_CLOSED, "connection closed", nil))
+		}
+		p.handlers.responseHandlers = make(map[int]responseHandler)
+		p.transport = nil
+	}
 
 	return p
 }
 
+// クローズ時のコールバック処理を追加する
 func (p *Protocol) SetOnClose(onClose func()) {
-	p.onClose = onClose
+	defaultOnClose := p.onClose
+	p.onClose = func() {
+		defaultOnClose()
+		onClose()
+	}
 }
 
 func (p *Protocol) SetOnError(onError func(error)) {
@@ -56,17 +69,7 @@ func (p *Protocol) Close() {
 	if p.transport == nil {
 		return
 	}
-	p.defaultOnClose()
 	p.transport.Close()
-}
-
-func (p *Protocol) defaultOnClose() {
-	responseHandlers := p.handlers.responseHandlers
-	for _, handler := range responseHandlers {
-		handler(nil, mcp_err.NewMcpErr(mcp_err.CONNECTION_CLOSED, "connection closed", nil))
-	}
-	p.handlers.responseHandlers = make(map[int]responseHandler)
-	p.transport = nil
 }
 
 func (p *Protocol) Transport() transport {
