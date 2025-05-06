@@ -30,24 +30,13 @@ func NewProtocol() *Protocol {
 		resultCh:         make(chan *schema.Result, 1),
 		errCh:            make(chan *mcp_err.McpErr, 1),
 	}
-	p.onClose = func() {
-		responseHandlers := p.handlers.responseHandlers
-		for _, handler := range responseHandlers {
-			handler(nil, mcp_err.NewMcpErr(mcp_err.CONNECTION_CLOSED, "connection closed", nil))
-		}
-		p.handlers.responseHandlers = make(map[int]responseHandler)
-		p.transport = nil
-	}
 	p.onError = func(err error) {}
 
 	return p
 }
 
 func (p *Protocol) SetOnClose(onClose func()) {
-	p.onClose = func() {
-		p.onClose()
-		onClose()
-	}
+	p.onClose = onClose
 }
 
 func (p *Protocol) SetOnError(onError func(error)) {
@@ -61,6 +50,23 @@ func (p *Protocol) Connect(transport transport) {
 	p.transport.SetOnError(p.onError)
 	p.transport.SetOnReceiveMessage(p.onReceiveMessage)
 	p.transport.Start()
+}
+
+func (p *Protocol) Close() {
+	if p.transport == nil {
+		return
+	}
+	p.defaultOnClose()
+	p.transport.Close()
+}
+
+func (p *Protocol) defaultOnClose() {
+	responseHandlers := p.handlers.responseHandlers
+	for _, handler := range responseHandlers {
+		handler(nil, mcp_err.NewMcpErr(mcp_err.CONNECTION_CLOSED, "connection closed", nil))
+	}
+	p.handlers.responseHandlers = make(map[int]responseHandler)
+	p.transport = nil
 }
 
 func (p *Protocol) Transport() transport {

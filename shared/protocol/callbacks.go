@@ -11,13 +11,10 @@ import (
 func (p *Protocol) onReceiveMessage(message schema.JsonRpcMessage) {
 	switch m := message.(type) {
 	case schema.JsonRpcResponse:
-		fmt.Println("onReceiveMessage response", m)
 		p.onResponse(m)
 	case schema.JsonRpcError:
-		fmt.Println("onReceiveMessage error", m)
 		p.onErrResponse(m)
 	case schema.JsonRpcRequest:
-		fmt.Println("onReceiveMessage request", m)
 		p.onRequest(m)
 	case schema.JsonRpcNotification:
 		p.onNotification(m)
@@ -94,7 +91,9 @@ func (p *Protocol) onResponse(response schema.JsonRpcResponse) {
 		p.onError(err)
 		return
 	}
+
 	p.resultCh <- result
+
 }
 
 func (p *Protocol) onErrResponse(errResponse schema.JsonRpcError) {
@@ -106,7 +105,9 @@ func (p *Protocol) onErrResponse(errResponse schema.JsonRpcError) {
 	}
 	defer delete(p.handlers.responseHandlers, messageId)
 	err := mcp_err.NewMcpErr(errResponse.Error.Code, errResponse.Error.Message, errResponse.Error.Data)
+
 	p.errCh <- err
+
 }
 
 func (p *Protocol) onNotification(notification schema.JsonRpcNotification) {
