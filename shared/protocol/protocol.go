@@ -15,8 +15,8 @@ type Protocol struct {
 	onClose          func()
 	onError          func(error)
 
-	resultCh chan *schema.Result
-	errCh    chan *mcp_err.McpErr
+	respCh    chan *schema.Result
+	errRespCh chan error
 }
 
 func NewProtocol() *Protocol {
@@ -27,8 +27,8 @@ func NewProtocol() *Protocol {
 			responseHandlers:     make(map[int]responseHandler),
 		},
 		requestMessageId: 0,
-		resultCh:         make(chan *schema.Result, 1),
-		errCh:            make(chan *mcp_err.McpErr, 1),
+		respCh:           make(chan *schema.Result, 1),
+		errRespCh:        make(chan error, 1),
 	}
 	p.onError = func(err error) {}
 	p.onClose = func() {
@@ -106,9 +106,9 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (*schema.Re
 	}
 	// 登録したレスポンスハンドラーからの結果を待つ
 	select {
-	case result := <-p.resultCh:
+	case result := <-p.respCh:
 		return result, nil
-	case err := <-p.errCh:
+	case err := <-p.errRespCh:
 		return nil, err
 	}
 }

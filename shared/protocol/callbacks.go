@@ -49,29 +49,48 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 	}
 	result, err := handler(request)
 	if err != nil {
-		code := err.Code
-		err := p.transport.SendMessage(
+		// MCPエラー
+		if mcpErr, ok := err.(*mcp_err.McpErr); ok {
+			code := mcpErr.Code
+			if err := p.transport.SendMessage(
+				schema.JsonRpcError{
+					BaseMessage: schema.BaseMessage{
+						Jsonrpc: schema.JSON_RPC_VERSION,
+						Id:      request.Id,
+					},
+					Error: schema.Error{
+						Code:    code,
+						Message: err.Error(),
+					},
+				},
+			); err != nil {
+				p.onError(err)
+			}
+			return
+		}
+		// MCPエラーではないエラー
+		if err := p.transport.SendMessage(
 			schema.JsonRpcError{
 				BaseMessage: schema.BaseMessage{
 					Jsonrpc: schema.JSON_RPC_VERSION,
 					Id:      request.Id,
 				},
 				Error: schema.Error{
-					Code:    code,
+					Code:    mcp_err.INTERNAL_ERROR,
 					Message: err.Error(),
 				},
 			},
-		)
-		if err != nil {
+		); err != nil {
 			p.onError(err)
 		}
+		return
 	}
 	if err := p.transport.SendMessage(schema.JsonRpcResponse{
 		BaseMessage: schema.BaseMessage{
 			Jsonrpc: schema.JSON_RPC_VERSION,
 			Id:      request.Id,
 		},
-		Result: result,
+		Result: *result,
 	}); err != nil {
 		p.onError(err)
 	}
@@ -92,7 +111,7 @@ func (p *Protocol) onResponse(response schema.JsonRpcResponse) {
 		return
 	}
 
-	p.resultCh <- result
+	p.respCh <- result
 
 }
 
@@ -106,7 +125,7 @@ func (p *Protocol) onErrResponse(errResponse schema.JsonRpcError) {
 	defer delete(p.handlers.responseHandlers, messageId)
 	err := mcp_err.NewMcpErr(errResponse.Error.Code, errResponse.Error.Message, errResponse.Error.Data)
 
-	p.errCh <- err
+	p.errRespCh <- err
 
 }
 
