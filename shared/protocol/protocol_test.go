@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -31,14 +32,23 @@ func TestProtocol_Connect(t *testing.T) {
 func TestProtocol_Request(t *testing.T) {
 	tests := []struct {
 		name             string
+		setHandler       func(p *Protocol)
 		request          schema.Request
 		resultSchema     schema.Result
 		expectedResult   schema.Result
-		expectedError    *mcp_err.McpErr
+		expectedErrCode  int
 		isExpectedMcpErr bool
 	}{
 		{
 			name: "nomal case :client send request and receive response successfully",
+			setHandler: func(p *Protocol) {
+				p.SetRequestHandler(schema.Request{Method: "test"}, func(request schema.JsonRpcRequest) (*schema.Result, error) {
+					return &schema.Result{
+						Result: map[string]string{
+							"status": "success",
+						}}, nil
+				})
+			},
 			request: schema.Request{
 				Method: "test",
 			},
@@ -53,14 +63,25 @@ func TestProtocol_Request(t *testing.T) {
 			isExpectedMcpErr: false,
 		},
 		{
-			name: "sminormal case :client send unknown request and receive error response",
+			name: "sminormal case :client send unknown request and receive 'method not found' error",
 			request: schema.Request{
 				Method: "unknown",
 			},
-			expectedError: &mcp_err.McpErr{
-				Code: mcp_err.METHOD_NOT_FOUND,
+			expectedErrCode:  mcp_err.METHOD_NOT_FOUND,
+			isExpectedMcpErr: true,
+		},
+		{
+			name: "sminormal case :client send unknown request and receive something error (not mcpErr)",
+			request: schema.Request{
+				Method: "error",
+			},
+			setHandler: func(p *Protocol) {
+				p.SetRequestHandler(schema.Request{Method: "error"}, func(request schema.JsonRpcRequest) (*schema.Result, error) {
+					return nil, errors.New("some error")
+				})
 			},
 			isExpectedMcpErr: true,
+			expectedErrCode:  mcp_err.INTERNAL_ERROR,
 		},
 	}
 
@@ -88,9 +109,9 @@ func TestProtocol_Request(t *testing.T) {
 			})
 
 			// サーバー側でリクエストハンドラを登録
-			server.SetRequestHandler(schema.Request{Method: "test"}, func(request schema.JsonRpcRequest) (schema.Result, *mcp_err.McpErr) {
-				return tt.expectedResult, nil
-			})
+			if tt.setHandler != nil {
+				tt.setHandler(server)
+			}
 
 			// 通信を開始
 			server.Connect(serverTransport)
@@ -102,21 +123,21 @@ func TestProtocol_Request(t *testing.T) {
 			}()
 			// リクエストを受け取ったら、レスポンスを返すことを確認する
 			got, err := client.Request(tt.request, tt.resultSchema)
-			// テストケースがエラーを期待する場合、エラーが期待通りか確認
+			// テストケースがMCPエラーを期待する場合、エラーが期待通りか確認
+			if (err != nil) != tt.isExpectedMcpErr {
+				t.Errorf("Request() got error = %v, want %v", err, tt.isExpectedMcpErr)
+				return
+			}
 			if tt.isExpectedMcpErr {
 				e, ok := err.(*mcp_err.McpErr)
 				if !ok {
-					t.Errorf("Request() got error = %v, want %v", err, tt.expectedError)
+					t.Errorf("Request() got error = %v, want %v", err, tt.isExpectedMcpErr)
 					return
 				}
-				if e.Code != tt.expectedError.Code {
-					t.Errorf("Request() got error code = %v, want %v", e.Code, tt.expectedError.Code)
+				if e.Code != mcp_err.ErrCode(tt.expectedErrCode) {
+					t.Errorf("Request() got error code = %v, want %v", e.Code, tt.expectedErrCode)
 					return
 				}
-				return
-			}
-			if err != nil {
-				t.Errorf("Request() got error = %v", err)
 				return
 			}
 			if diff := cmp.Diff(got, &tt.expectedResult); diff != "" {
