@@ -146,3 +146,94 @@ func TestProtocol_Request(t *testing.T) {
 		})
 	}
 }
+
+func TestProtocol_Notificate(t *testing.T) {
+	tests := []struct {
+		name         string
+		notification schema.Notification
+	}{
+		{
+			name: "normal case :client send notification successfully",
+			notification: schema.Notification{
+				Method: "test",
+				Params: map[string]string{
+					"status": "success",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// プロトコルのインスタンスを作成
+			server := NewProtocol()
+			client := NewProtocol()
+
+			// トランスポートのモックを作成
+			serverToClientCh := make(chan schema.JsonRpcMessage, 1)
+			clientToServerCh := make(chan schema.JsonRpcMessage, 1)
+
+			// トランスポートを初期化
+			serverTransport := test.NewMockChannelServerTransport(clientToServerCh, serverToClientCh)
+			clientTransport := test.NewMockChannelClientTransport(clientToServerCh, serverToClientCh)
+
+			// Close時コールバックを登録
+			server.SetOnClose(func() {
+				close(serverToClientCh)
+			})
+			client.SetOnClose(func() {
+				close(clientToServerCh)
+			})
+
+			// 通信を開始
+			server.Connect(serverTransport)
+			client.Connect(clientTransport)
+			// クリーンアップ
+			defer func() {
+				server.Close()
+				client.Close()
+			}()
+
+			// 通知を送信
+			err := client.Notificate(tt.notification)
+			if err != nil {
+				t.Errorf("Notify() got error = %v", err)
+				return
+			}
+
+		})
+	}
+}
+
+func TestProtocol_Close(t *testing.T) {
+	tests := []struct {
+		name     string
+		onClose  func()
+		expected bool
+	}{
+		{
+			name: "normal case :set onClose callback",
+			onClose: func() {
+				// do nothing
+			},
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			protocol := NewProtocol()
+			serverTransport := test.NewMockChannelServerTransport(
+				make(chan schema.JsonRpcMessage, 1),
+				make(chan schema.JsonRpcMessage, 1),
+			)
+			protocol.SetOnClose(tt.onClose)
+			protocol.Connect(serverTransport)
+
+			protocol.Close()
+			if protocol.Transport() != nil {
+				t.Errorf("Expected transport to be nil after close, but it was not")
+			}
+
+		})
+	}
+}
