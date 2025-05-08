@@ -42,21 +42,16 @@ func TestProtocol_Request(t *testing.T) {
 		{
 			name: "nomal case :client send request and receive response successfully",
 			setHandler: func(p *Protocol) {
-				p.SetRequestHandler(&test.TestRequest{MethodName: "test"}, func(request schema.JsonRpcRequest) (*schema.Result, error) {
-					return &schema.Result{
-						Result: map[string]string{
-							"status": "success",
-						}}, nil
+				p.SetRequestHandler(&test.TestRequest{MethodName: "test"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+					return &test.TestResult{
+						Status: "success",
+					}, nil
 				})
 			},
-			request: &test.TestRequest{MethodName: "test"},
-			resultSchema: schema.Result{
-				Result: map[string]string{},
-			},
-			expectedResult: schema.Result{
-				Result: map[string]string{
-					"status": "success",
-				},
+			request:      &test.TestRequest{MethodName: "test"},
+			resultSchema: &test.TestResult{},
+			expectedResult: &test.TestResult{
+				Status: "success",
 			},
 			isExpectedMcpErr: false,
 		},
@@ -70,7 +65,7 @@ func TestProtocol_Request(t *testing.T) {
 			name:    "sminormal case :client send unknown request and receive something error (not mcpErr)",
 			request: &test.TestRequest{MethodName: "error"},
 			setHandler: func(p *Protocol) {
-				p.SetRequestHandler(&test.TestRequest{MethodName: "error"}, func(request schema.JsonRpcRequest) (*schema.Result, error) {
+				p.SetRequestHandler(&test.TestRequest{MethodName: "error"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
 					return nil, errors.New("some error")
 				})
 			},
@@ -134,7 +129,7 @@ func TestProtocol_Request(t *testing.T) {
 				}
 				return
 			}
-			if diff := cmp.Diff(got, &tt.expectedResult); diff != "" {
+			if diff := cmp.Diff(got, tt.expectedResult); diff != "" {
 				t.Errorf("Request() got = %v, want %v, diff %s", got, tt.expectedResult, diff)
 			}
 		})

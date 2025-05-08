@@ -12,11 +12,11 @@ type handlers struct {
 	fallbackRequestHandler      func()
 }
 
-type requestHandler func(request schema.JsonRpcRequest) (*schema.Result, error)
+type requestHandler func(request schema.JsonRpcRequest) (schema.Result, error)
 
 type notificationHandler func(notification schema.JsonRpcNotification) error
 
-type responseHandler func(response *schema.JsonRpcResponse, mcpErr error) (*schema.Result, error)
+type responseHandler func(response *schema.JsonRpcResponse, mcpErr error) (schema.Result, error)
 
 func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler requestHandler) {
 	method := requestSchema.Method

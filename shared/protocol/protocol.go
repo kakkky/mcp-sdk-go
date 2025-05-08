@@ -15,7 +15,7 @@ type Protocol struct {
 	onClose          func()
 	onError          func(error)
 
-	respCh    chan *schema.Result
+	respCh    chan schema.Result
 	errRespCh chan error
 }
 
@@ -27,7 +27,7 @@ func NewProtocol() *Protocol {
 			responseHandlers:     make(map[int]responseHandler),
 		},
 		requestMessageId: 0,
-		respCh:           make(chan *schema.Result, 1),
+		respCh:           make(chan schema.Result, 1),
 		errRespCh:        make(chan error, 1),
 	}
 	p.onError = func(err error) {}
@@ -76,7 +76,7 @@ func (p *Protocol) Transport() transport {
 	return p.transport
 }
 
-func (p *Protocol) Request(request schema.Request, resultSchema any) (*schema.Result, error) {
+func (p *Protocol) Request(request schema.Request, resultSchema any) (schema.Result, error) {
 	if p.transport == nil {
 		return nil, fmt.Errorf("not connected")
 	}
@@ -90,7 +90,7 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (*schema.Re
 		Request: request,
 	}
 	// リクエストに紐づくレスポンスハンドラを登録する
-	p.SetResponseHandler(messageId, func(response *schema.JsonRpcResponse, mcpErr error) (*schema.Result, error) {
+	p.SetResponseHandler(messageId, func(response *schema.JsonRpcResponse, mcpErr error) (schema.Result, error) {
 		// レスポンスの型をチェック
 		result := response.Result
 		resultT := reflect.TypeOf(result)
@@ -98,7 +98,7 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (*schema.Re
 		if resultT != schemaT {
 			return nil, fmt.Errorf("result type mismatch: expected %s, got %s", schemaT, resultT)
 		}
-		return &result, nil
+		return result, nil
 	})
 	// リクエストの送信
 	if err := p.transport.SendMessage(jsonRpcRequest); err != nil {

@@ -90,7 +90,7 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 			Jsonrpc: schema.JSON_RPC_VERSION,
 			Id:      request.Id,
 		},
-		Result: *result,
+		Result: result,
 	}); err != nil {
 		p.onError(err)
 	}

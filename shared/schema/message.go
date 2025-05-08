@@ -25,7 +25,7 @@ type JsonRpcNotification struct {
 
 type JsonRpcResponse struct {
 	BaseMessage
-	Result
+	Result `json:"result"`
 }
 
 type JsonRpcError struct {
