@@ -42,30 +42,30 @@ func TestProtocol_Request(t *testing.T) {
 		{
 			name: "nomal case :client send request and receive response successfully",
 			setHandler: func(p *Protocol) {
-				p.SetRequestHandler(&test.TestRequest{MethodName: "test"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
-					return &test.TestResult{
+				p.SetRequestHandler(&test.TestRequestSchema{MethodName: "test"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+					return &test.TestResultShema{
 						Status: "success",
 					}, nil
 				})
 			},
-			request:      &test.TestRequest{MethodName: "test"},
-			resultSchema: &test.TestResult{},
-			expectedResult: &test.TestResult{
+			request:      &test.TestRequestSchema{MethodName: "test"},
+			resultSchema: &test.TestResultShema{},
+			expectedResult: &test.TestResultShema{
 				Status: "success",
 			},
 			isExpectedMcpErr: false,
 		},
 		{
 			name:             "sminormal case :client send unknown request and receive 'method not found' error",
-			request:          &test.TestRequest{MethodName: "unknown"},
+			request:          &test.TestRequestSchema{MethodName: "unknown"},
 			expectedErrCode:  mcp_err.METHOD_NOT_FOUND,
 			isExpectedMcpErr: true,
 		},
 		{
 			name:    "sminormal case :client send unknown request and receive something error (not mcpErr)",
-			request: &test.TestRequest{MethodName: "error"},
+			request: &test.TestRequestSchema{MethodName: "error"},
 			setHandler: func(p *Protocol) {
-				p.SetRequestHandler(&test.TestRequest{MethodName: "error"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+				p.SetRequestHandler(&test.TestRequestSchema{MethodName: "error"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
 					return nil, errors.New("some error")
 				})
 			},
@@ -143,11 +143,8 @@ func TestProtocol_Notificate(t *testing.T) {
 	}{
 		{
 			name: "normal case :client send notification successfully",
-			notification: schema.Notification{
-				Method: "test",
-				Params: map[string]string{
-					"status": "success",
-				},
+			notification: &test.TestNotificationSchema{
+				MethodName: "test",
 			},
 		},
 	}

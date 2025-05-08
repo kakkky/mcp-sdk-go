@@ -1,22 +1,38 @@
 package test
 
-type TestRequest struct {
+// テスト用リクエストスキーマ
+type TestRequestSchema struct {
 	MethodName string `json:"method"`
 	ParamsData any    `json:"params"`
 }
 
-func (r *TestRequest) Method() string {
+func (r *TestRequestSchema) Method() string {
 	return r.MethodName
 }
 
-func (r *TestRequest) Params() any {
+func (r *TestRequestSchema) Params() any {
 	return r.ParamsData
 }
 
-type TestResult struct {
+// テスト用レスポンススキーマ
+type TestResultShema struct {
 	Status string `json:"status"`
 }
 
-func (r *TestResult) Result() any {
+func (r *TestResultShema) Result() any {
 	return r.Status
+}
+
+// テスト用通知スキーマ
+type TestNotificationSchema struct {
+	MethodName string `json:"method"`
+	ParamsData any    `json:"params"`
+}
+
+func (n *TestNotificationSchema) Method() string {
+	return n.MethodName
+}
+
+func (n *TestNotificationSchema) Params() any {
+	return n.ParamsData
 }

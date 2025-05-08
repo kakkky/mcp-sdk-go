@@ -26,7 +26,7 @@ func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler reque
 
 func (p *Protocol) SetNotificationHandler(notificationSchema schema.Notification, handler notificationHandler) {
 	method := notificationSchema.Method
-	p.handlers.notificationHandlers[method] = handler
+	p.handlers.notificationHandlers[method()] = handler
 }
 
 // リクエスト送信の際に、対応するレスポンスハンドラを登録する

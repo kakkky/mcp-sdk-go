@@ -130,7 +130,7 @@ func (p *Protocol) onErrResponse(errResponse schema.JsonRpcError) {
 }
 
 func (p *Protocol) onNotification(notification schema.JsonRpcNotification) {
-	handler := p.handlers.notificationHandlers[notification.Method]
+	handler := p.handlers.notificationHandlers[notification.Method()]
 	if handler == nil && p.handlers.fallbackNotificationHandler != nil {
 		p.handlers.fallbackNotificationHandler()
 		return
