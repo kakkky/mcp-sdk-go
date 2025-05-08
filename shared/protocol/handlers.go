@@ -21,7 +21,7 @@ type responseHandler func(response *schema.JsonRpcResponse, mcpErr error) (*sche
 func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler requestHandler) {
 	method := requestSchema.Method
 	// TODO: ここで、指定されたmethodをすでに登録していないか確認
-	p.handlers.requestHandlers[method] = handler
+	p.handlers.requestHandlers[method()] = handler
 }
 
 func (p *Protocol) SetNotificationHandler(notificationSchema schema.Notification, handler notificationHandler) {

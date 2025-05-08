@@ -24,7 +24,7 @@ func (p *Protocol) onReceiveMessage(message schema.JsonRpcMessage) {
 }
 
 func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
-	handler := p.handlers.requestHandlers[request.Method]
+	handler := p.handlers.requestHandlers[request.Method()]
 	if handler == nil && p.handlers.fallbackRequestHandler != nil {
 		p.handlers.fallbackRequestHandler()
 		return

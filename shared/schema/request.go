@@ -1,6 +1,6 @@
 package schema
 
-type Request struct {
-	Method string `json:"method"`
-	Params any    `json:"params"`
+type Request interface {
+	Method() string
+	Params() any
 }
