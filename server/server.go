@@ -1,6 +1,8 @@
 package server
 
 import (
+	"errors"
+
 	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
 	"github.com/kakkky/mcp-sdk-go/shared/protocol"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
@@ -38,6 +40,14 @@ func NewServer(serverInfo schema.Implementation, options ServerOptopns) *Server 
 	})
 
 	return s
+}
+
+func (s *Server) registerCapabilities(capabilities schema.ServerCapabilities) error {
+	if s.Transport() == nil {
+		return errors.New("cannot register capabilities after connecting to transport")
+	}
+	s.capabilities = protocol.MergeCapabilities(s.capabilities, capabilities)
+	return nil
 }
 
 func (s *Server) onInitialize(request schema.JsonRpcRequest) (*schema.InitializeResultSchema, error) {
