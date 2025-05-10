@@ -9,13 +9,14 @@ import (
 )
 
 type Protocol struct {
-	transport                   transport
-	handlers                    *handlers
-	requestMessageId            int
-	onClose                     func()
-	onError                     func(error)
-	options                     *ProtocolOptions
-	onAssertCapabilityForMethod func(method string) error
+	transport                      transport
+	handlers                       *handlers
+	requestMessageId               int
+	onClose                        func()
+	onError                        func(error)
+	options                        *ProtocolOptions
+	onAssertCapabilityForMethod    func(method string) error
+	onAssertNotificationCapability func(method string) error
 
 	respCh    chan schema.Result
 	errRespCh chan error
@@ -139,4 +140,8 @@ func (p *Protocol) Notificate(notification schema.Notification) error {
 
 func (p *Protocol) SetOnAssertCapabilityForMethod(onAssertCapabilityForMethod func(method string) error) {
 	p.onAssertCapabilityForMethod = onAssertCapabilityForMethod
+}
+
+func (p *Protocol) SetOnAssertNotificationCapability(onAssertNotificationCapability func(method string) error) {
+	p.onAssertNotificationCapability = onAssertNotificationCapability
 }
