@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
+	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
@@ -37,7 +37,7 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 					Id:      request.Id,
 				},
 				Error: schema.Error{
-					Code:    mcp_err.METHOD_NOT_FOUND,
+					Code:    mcperr.METHOD_NOT_FOUND,
 					Message: "method not found",
 				},
 			},
@@ -50,7 +50,7 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 	result, err := handler(request)
 	if err != nil {
 		// MCPエラー
-		if mcpErr, ok := err.(*mcp_err.McpErr); ok {
+		if mcpErr, ok := err.(*mcperr.McpErr); ok {
 			code := mcpErr.Code
 			if err := p.transport.SendMessage(
 				schema.JsonRpcError{
@@ -76,7 +76,7 @@ func (p *Protocol) onRequest(request schema.JsonRpcRequest) {
 					Id:      request.Id,
 				},
 				Error: schema.Error{
-					Code:    mcp_err.INTERNAL_ERROR,
+					Code:    mcperr.INTERNAL_ERROR,
 					Message: err.Error(),
 				},
 			},
@@ -123,7 +123,7 @@ func (p *Protocol) onErrResponse(errResponse schema.JsonRpcError) {
 		return
 	}
 	defer delete(p.handlers.responseHandlers, messageId)
-	err := mcp_err.NewMcpErr(errResponse.Error.Code, errResponse.Error.Message, errResponse.Error.Data)
+	err := mcperr.NewMcpErr(errResponse.Error.Code, errResponse.Error.Message, errResponse.Error.Data)
 
 	p.errRespCh <- err
 

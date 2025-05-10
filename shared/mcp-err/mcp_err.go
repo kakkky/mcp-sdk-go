@@ -1,4 +1,4 @@
-package mcp_err
+package mcperr
 
 import (
 	"fmt"

@@ -1,9 +1,9 @@
 package schema
 
-import "github.com/kakkky/mcp-sdk-go/shared/mcp_err"
+import mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 
 type Error struct {
-	Code    mcp_err.ErrCode `json:"code"`
-	Message string          `json:"message"`
-	Data    any             `json:"data,omitempty"`
+	Code    mcperr.ErrCode `json:"code"`
+	Message string         `json:"message"`
+	Data    any            `json:"data,omitempty"`
 }
