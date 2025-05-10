@@ -9,14 +9,13 @@ import (
 )
 
 type Protocol struct {
-	transport                      transport
-	handlers                       *handlers
-	requestMessageId               int
-	onClose                        func()
-	onError                        func(error)
-	options                        *ProtocolOptions
-	onAssertCapabilityForMethod    func(method string) error
-	onAssertNotificationCapability func(method string) error
+	transport            transport
+	handlers             *handlers
+	requestMessageId     int
+	onClose              func()
+	onError              func(error)
+	options              *ProtocolOptions
+	capabilityValidators *capabilityValidators
 
 	respCh    chan schema.Result
 	errRespCh chan error
@@ -31,8 +30,13 @@ func NewProtocol(options *ProtocolOptions) *Protocol {
 		},
 		requestMessageId: 0,
 		options:          options,
-		respCh:           make(chan schema.Result, 1),
-		errRespCh:        make(chan error, 1),
+		capabilityValidators: &capabilityValidators{
+			validateCapabilityForMethod:      nil,
+			validateNotificationCapability:   nil,
+			validateRequestHandlerCapability: nil,
+		},
+		respCh:    make(chan schema.Result, 1),
+		errRespCh: make(chan error, 1),
 	}
 	p.onError = func(err error) {}
 	p.onClose = func() {
@@ -85,8 +89,8 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (schema.Res
 		return nil, fmt.Errorf("not connected")
 	}
 
-	if p.options != nil && p.options.enforceStrictCapabilities && p.onAssertCapabilityForMethod != nil {
-		if err := p.onAssertCapabilityForMethod(request.Method()); err != nil {
+	if p.options != nil && p.options.enforceStrictCapabilities && p.capabilityValidators.validateCapabilityForMethod != nil {
+		if err := p.capabilityValidators.validateCapabilityForMethod(request.Method()); err != nil {
 			return nil, err
 		}
 
@@ -128,6 +132,11 @@ func (p *Protocol) Notificate(notification schema.Notification) error {
 	if p.transport == nil {
 		return fmt.Errorf("not connected")
 	}
+	if p.capabilityValidators.validateNotificationCapability != nil {
+		if err := p.capabilityValidators.validateNotificationCapability(notification.Method()); err != nil {
+			return err
+		}
+	}
 	jsonRpcNotification := schema.JsonRpcNotification{
 		Jsonrpc:      schema.JSON_RPC_VERSION,
 		Notification: notification,
@@ -136,12 +145,4 @@ func (p *Protocol) Notificate(notification schema.Notification) error {
 		return err
 	}
 	return nil
-}
-
-func (p *Protocol) SetOnAssertCapabilityForMethod(onAssertCapabilityForMethod func(method string) error) {
-	p.onAssertCapabilityForMethod = onAssertCapabilityForMethod
-}
-
-func (p *Protocol) SetOnAssertNotificationCapability(onAssertNotificationCapability func(method string) error) {
-	p.onAssertNotificationCapability = onAssertNotificationCapability
 }

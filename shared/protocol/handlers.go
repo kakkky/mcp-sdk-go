@@ -1,6 +1,8 @@
 package protocol
 
 import (
+	"fmt"
+
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
@@ -20,6 +22,12 @@ type responseHandler func(response *schema.JsonRpcResponse, mcpErr error) (schem
 
 func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler requestHandler) {
 	method := requestSchema.Method
+	if p.capabilityValidators.validateRequestHandlerCapability != nil {
+		if err := p.capabilityValidators.validateRequestHandlerCapability(method()); err != nil {
+			fmt.Println("Capability validation failed:", err)
+			return
+		}
+	}
 	// TODO: ここで、指定されたmethodをすでに登録していないか確認
 	p.handlers.requestHandlers[method()] = handler
 }

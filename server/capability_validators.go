@@ -3,7 +3,7 @@ package server
 import "fmt"
 
 // リクエストを送信する際に、メソッドにクライアントが対応しているのかを検証する
-func (s *Server) assertCapabilityForMethod(method string) error {
+func (s *Server) validateCapabilityForMethod(method string) error {
 	switch method {
 	case "sampling/createMessage":
 		if s.clientCapabilities.Sampling == nil {
@@ -20,7 +20,7 @@ func (s *Server) assertCapabilityForMethod(method string) error {
 }
 
 // 通知を送る前に、サーバーがメソッドに対応しているのかを検証する
-func (s *Server) assertNotificationCapability(method string) error {
+func (s *Server) validateNotificationCapability(method string) error {
 	switch method {
 	case "notifications/message":
 		if s.capabilities.Logging == nil {
@@ -42,6 +42,40 @@ func (s *Server) assertNotificationCapability(method string) error {
 	case "notifications/cancelled":
 		break
 	case "notifications/progress":
+		break
+	}
+	return nil
+}
+
+// リクエストハンドラを登録する前に、サーバーがメソッドに対応しているのかを検証する
+func (s *Server) validateRequestHandlerCapability(method string) error {
+	switch method {
+	case "sampling/createMessage":
+		// サーバーはそもそもサンプリングをサポートしていない（公式SDKの実装を変更）
+		return fmt.Errorf("server does not support sampling (required for %s)", method)
+	case "logging/setLevel":
+		if s.capabilities.Logging == nil {
+			return fmt.Errorf("server does not support logging (required for %s)", method)
+		}
+	case "prompts/get",
+		"prompts/list":
+		if s.capabilities.Prompts == nil {
+			return fmt.Errorf("server does not support prompts (required for %s)", method)
+		}
+	case "resources/list",
+		"resources/templates/list",
+		"resources/read":
+		if s.capabilities.Resources == nil {
+			return fmt.Errorf("server does not support resources (required for %s)", method)
+		}
+	case "tools/call",
+		"tools/list":
+		if s.capabilities.Tools == nil {
+			return fmt.Errorf("server does not support tools (required for %s)", method)
+		}
+	case "ping":
+		break
+	case "initialize":
 		break
 	}
 	return nil

@@ -6,7 +6,7 @@ import (
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
-func TestAssertCapabilityForMethod(t *testing.T) {
+func TestValidateCapabilityForMethod(t *testing.T) {
 	tests := []struct {
 		name          string
 		method        string
@@ -33,7 +33,7 @@ func TestAssertCapabilityForMethod(t *testing.T) {
 			sut := NewServer(schema.Implementation{}, nil)
 			sut.clientCapabilities = tt.capabilities
 
-			err := sut.assertCapabilityForMethod(tt.method)
+			err := sut.validateCapabilityForMethod(tt.method)
 
 			if (err != nil) != tt.expectedError {
 				t.Errorf("expected error: %v, got: %v", tt.expectedError, err)
@@ -42,7 +42,7 @@ func TestAssertCapabilityForMethod(t *testing.T) {
 	}
 }
 
-func TestAssertNotificationCapability(t *testing.T) {
+func TestValidateNotificationCapability(t *testing.T) {
 	tests := []struct {
 		name          string
 		method        string
@@ -75,7 +75,49 @@ func TestAssertNotificationCapability(t *testing.T) {
 			sut := NewServer(schema.Implementation{}, nil)
 			sut.capabilities = tt.capabilities
 
-			err := sut.assertNotificationCapability(tt.method)
+			err := sut.validateNotificationCapability(tt.method)
+
+			if (err != nil) != tt.expectedError {
+				t.Errorf("expected error: %v, got: %v", tt.expectedError, err)
+			}
+		})
+	}
+}
+
+func TestValidateRequestHandlerCapability(t *testing.T) {
+	tests := []struct {
+		name          string
+		method        string
+		capabilities  schema.ServerCapabilities
+		expectedError bool
+	}{
+		{
+			name:   "normal : server supports logging",
+			method: "logging/setLevel",
+			capabilities: schema.ServerCapabilities{
+				Logging: &schema.Logging{},
+			},
+			expectedError: false,
+		},
+		{
+			name:          "semi normal : server does not support logging",
+			method:        "logging/setLevel",
+			capabilities:  schema.ServerCapabilities{},
+			expectedError: true,
+		},
+		{
+			name:          "semi normal : server does not support sampling",
+			method:        "sampling/createMessage",
+			capabilities:  schema.ServerCapabilities{},
+			expectedError: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sut := NewServer(schema.Implementation{}, nil)
+			sut.capabilities = tt.capabilities
+
+			err := sut.validateRequestHandlerCapability(tt.method)
 
 			if (err != nil) != tt.expectedError {
 				t.Errorf("expected error: %v, got: %v", tt.expectedError, err)

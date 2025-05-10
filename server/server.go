@@ -46,8 +46,8 @@ func NewServer(serverInfo schema.Implementation, options *ServerOptopns) *Server
 		return s.onInitialized()
 	})
 
-	s.SetOnAssertCapabilityForMethod(s.assertCapabilityForMethod)
-	s.SetOnAssertNotificationCapability(s.assertNotificationCapability)
+	s.SetValidateCapabilityForMethod(s.validateCapabilityForMethod)
+	s.SetValidateNotificationCapability(s.validateNotificationCapability)
 
 	return s
 }
