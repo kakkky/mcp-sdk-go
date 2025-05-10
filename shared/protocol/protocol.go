@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
+	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
@@ -42,7 +42,7 @@ func NewProtocol(options *ProtocolOptions) *Protocol {
 	p.onClose = func() {
 		responseHandlers := p.handlers.responseHandlers
 		for _, handler := range responseHandlers {
-			handler(nil, mcp_err.NewMcpErr(mcp_err.CONNECTION_CLOSED, "connection closed", nil))
+			handler(nil, mcperr.NewMcpErr(mcperr.CONNECTION_CLOSED, "connection closed", nil))
 		}
 		p.handlers.responseHandlers = make(map[int]responseHandler)
 		p.transport = nil

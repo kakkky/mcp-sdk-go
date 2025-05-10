@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
+	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 	"github.com/kakkky/mcp-sdk-go/shared/protocol"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
@@ -67,7 +67,7 @@ func (s *Server) registerCapabilities(capabilities schema.ServerCapabilities) er
 func (s *Server) onInitialize(request schema.JsonRpcRequest) (*schema.InitializeResultSchema, error) {
 	requestData, ok := request.Request.(*schema.InitializeRequestSchema)
 	if !ok {
-		return nil, mcp_err.NewMcpErr(mcp_err.INVALID_REQUEST, "invalid request", nil)
+		return nil, mcperr.NewMcpErr(mcperr.INVALID_REQUEST, "invalid request", nil)
 	}
 
 	requestVersion := requestData.ParamsData.ProtocolVersion

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
+	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 	"github.com/kakkky/mcp-sdk-go/shared/protocol/test"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
@@ -58,7 +58,7 @@ func TestProtocol_Request(t *testing.T) {
 		{
 			name:             "sminormal case :client send unknown request and receive 'method not found' error",
 			request:          &test.TestRequestSchema{MethodName: "unknown"},
-			expectedErrCode:  mcp_err.METHOD_NOT_FOUND,
+			expectedErrCode:  mcperr.METHOD_NOT_FOUND,
 			isExpectedMcpErr: true,
 		},
 		{
@@ -70,7 +70,7 @@ func TestProtocol_Request(t *testing.T) {
 				})
 			},
 			isExpectedMcpErr: true,
-			expectedErrCode:  mcp_err.INTERNAL_ERROR,
+			expectedErrCode:  mcperr.INTERNAL_ERROR,
 		},
 	}
 
@@ -118,12 +118,12 @@ func TestProtocol_Request(t *testing.T) {
 					t.Errorf("Request() got error = %v, want %v", err, tt.isExpectedMcpErr)
 					return
 				}
-				e, ok := err.(*mcp_err.McpErr)
+				e, ok := err.(*mcperr.McpErr)
 				if !ok {
 					t.Errorf("Request() got error = %v, want %v", err, tt.isExpectedMcpErr)
 					return
 				}
-				if e.Code != mcp_err.ErrCode(tt.expectedErrCode) {
+				if e.Code != mcperr.ErrCode(tt.expectedErrCode) {
 					t.Errorf("Request() got error code = %v, want %v", e.Code, tt.expectedErrCode)
 					return
 				}
