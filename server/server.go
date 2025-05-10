@@ -39,10 +39,10 @@ func NewServer(serverInfo schema.Implementation, options *ServerOptopns) *Server
 		s.Protocol = protocol.NewProtocol(&options.ProtocolOptions)
 	}
 	// 初期化時のやり取りを行うためのハンドラをセット
-	s.SetRequestHandler(&schema.InitializeRequestSchema{}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+	s.SetRequestHandler(&schema.InitializeRequestSchema{MethodName: "initialize"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
 		return s.onInitialize(request)
 	})
-	s.SetNotificationHandler(&schema.InitializeNotificationSchema{}, func(notification schema.JsonRpcNotification) error {
+	s.SetNotificationHandler(&schema.InitializeNotificationSchema{MethodName: "notifications/initialized"}, func(notification schema.JsonRpcNotification) error {
 		if s.onInitialized != nil {
 			return s.onInitialized()
 		}
@@ -81,4 +81,11 @@ func (s *Server) onInitialize(request schema.JsonRpcRequest) (*schema.Initialize
 		Instructions:    s.instructions,
 	}, nil
 
+}
+
+// 基本的な通信メソッド
+func (s *Server) Ping() (schema.Result, error) {
+	return s.Request(&schema.PingRequestSchema{
+		MethodName: "ping",
+	}, &schema.EmptyResultSchema{})
 }

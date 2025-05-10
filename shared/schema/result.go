@@ -14,3 +14,9 @@ type InitializeResultSchema struct {
 func (r *InitializeResultSchema) Result() any {
 	return r
 }
+
+type EmptyResultSchema struct{}
+
+func (r *EmptyResultSchema) Result() any {
+	return r
+}

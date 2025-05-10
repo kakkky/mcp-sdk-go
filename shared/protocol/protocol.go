@@ -48,6 +48,10 @@ func NewProtocol(options *ProtocolOptions) *Protocol {
 		p.transport = nil
 	}
 
+	p.SetRequestHandler(&schema.PingRequestSchema{MethodName: "ping"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+		return &schema.EmptyResultSchema{}, nil
+	})
+
 	return p
 }
 

@@ -23,3 +23,15 @@ func (r *InitializeRequestSchema) Method() string {
 func (r *InitializeRequestSchema) Params() any {
 	return r.ParamsData
 }
+
+type PingRequestSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (r *PingRequestSchema) Method() string {
+	return r.MethodName
+}
+
+func (r *PingRequestSchema) Params() any {
+	return nil
+}
