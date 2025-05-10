@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/kakkky/mcp-sdk-go/shared/mcp_err"
 	"github.com/kakkky/mcp-sdk-go/shared/protocol"
@@ -88,4 +89,37 @@ func (s *Server) Ping() (schema.Result, error) {
 	return s.Request(&schema.PingRequestSchema{
 		MethodName: "ping",
 	}, &schema.EmptyResultSchema{})
+}
+
+func (s *Server) CreateMessage(params any, contentType string) (schema.Result, error) {
+	switch contentType {
+	case "text":
+		typedParams, ok := params.(schema.CreateMessageRequestParams[schema.TextContentSchema])
+		if !ok {
+			return nil, fmt.Errorf("invalid params type: %T", params)
+		}
+		return s.Request(&schema.CreateMessageRequestSchema[schema.TextContentSchema]{
+			MethodName: "sampling/createMessage",
+			ParamsData: typedParams,
+		}, &schema.CreateMessageResultSchema[schema.TextContentSchema]{})
+	case "image":
+		typedParams, ok := params.(schema.CreateMessageRequestParams[schema.ImageContentSchema])
+		if !ok {
+			return nil, fmt.Errorf("invalid params type: %T", params)
+		}
+		return s.Request(&schema.CreateMessageRequestSchema[schema.ImageContentSchema]{
+			MethodName: "sampling/createMessage",
+			ParamsData: typedParams,
+		}, &schema.CreateMessageResultSchema[schema.ImageContentSchema]{})
+	case "audio":
+		typedParams, ok := params.(schema.CreateMessageRequestParams[schema.AudioContentSchema])
+		if !ok {
+			return nil, fmt.Errorf("invalid params type: %T", params)
+		}
+		return s.Request(&schema.CreateMessageRequestSchema[schema.AudioContentSchema]{
+			MethodName: "sampling/createMessage",
+			ParamsData: typedParams,
+		}, &schema.CreateMessageResultSchema[schema.AudioContentSchema]{})
+	}
+	return nil, fmt.Errorf("invalid content type: %s", contentType)
 }

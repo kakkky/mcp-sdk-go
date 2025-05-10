@@ -20,3 +20,14 @@ type EmptyResultSchema struct{}
 func (r *EmptyResultSchema) Result() any {
 	return r
 }
+
+type CreateMessageResultSchema[T ContentSchema] struct {
+	Model      string  `json:"model"`
+	StopReason *string `json:"stopReason,omitempty"` // endTurn or stopSequence or maxTokens
+	Role       string  `json:"role"`                 // user or assistant
+	Content    T       `json:"content"`
+}
+
+func (r *CreateMessageResultSchema[T]) Result() any {
+	return r
+}
