@@ -9,7 +9,7 @@ import (
 )
 
 type Protocol struct {
-	transport            transport
+	transport            Transport
 	handlers             *handlers
 	requestMessageId     int
 	onClose              func()
@@ -68,7 +68,7 @@ func (p *Protocol) SetOnError(onError func(error)) {
 	p.onError = onError
 }
 
-func (p *Protocol) Connect(transport transport) {
+func (p *Protocol) Connect(transport Transport) {
 	p.transport = transport
 	p.transport.SetOnClose(p.onClose)
 
@@ -84,7 +84,7 @@ func (p *Protocol) Close() {
 	p.transport.Close()
 }
 
-func (p *Protocol) Transport() transport {
+func (p *Protocol) Transport() Transport {
 	return p.transport
 }
 

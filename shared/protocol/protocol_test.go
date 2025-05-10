@@ -6,13 +6,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
-	"github.com/kakkky/mcp-sdk-go/shared/protocol/test"
+	"github.com/kakkky/mcp-sdk-go/shared/protocol/mock"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
 func TestProtocol_Connect(t *testing.T) {
 	// モックの Transport を作成
-	transport := test.NewMockChannelServerTransport(
+	transport := mock.NewMockChannelServerTransport(
 		make(chan schema.JsonRpcMessage, 1),
 		make(chan schema.JsonRpcMessage, 1),
 	)
@@ -42,30 +42,30 @@ func TestProtocol_Request(t *testing.T) {
 		{
 			name: "nomal case :client send request and receive response successfully",
 			setHandler: func(p *Protocol) {
-				p.SetRequestHandler(&test.TestRequestSchema{MethodName: "test"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
-					return &test.TestResultShema{
+				p.SetRequestHandler(&mock.TestRequestSchema{MethodName: "test"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+					return &mock.TestResultShema{
 						Status: "success",
 					}, nil
 				})
 			},
-			request:      &test.TestRequestSchema{MethodName: "test"},
-			resultSchema: &test.TestResultShema{},
-			expectedResult: &test.TestResultShema{
+			request:      &mock.TestRequestSchema{MethodName: "test"},
+			resultSchema: &mock.TestResultShema{},
+			expectedResult: &mock.TestResultShema{
 				Status: "success",
 			},
 			isExpectedMcpErr: false,
 		},
 		{
 			name:             "sminormal case :client send unknown request and receive 'method not found' error",
-			request:          &test.TestRequestSchema{MethodName: "unknown"},
+			request:          &mock.TestRequestSchema{MethodName: "unknown"},
 			expectedErrCode:  mcperr.METHOD_NOT_FOUND,
 			isExpectedMcpErr: true,
 		},
 		{
 			name:    "sminormal case :client send unknown request and receive something error (not mcpErr)",
-			request: &test.TestRequestSchema{MethodName: "error"},
+			request: &mock.TestRequestSchema{MethodName: "error"},
 			setHandler: func(p *Protocol) {
-				p.SetRequestHandler(&test.TestRequestSchema{MethodName: "error"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+				p.SetRequestHandler(&mock.TestRequestSchema{MethodName: "error"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
 					return nil, errors.New("some error")
 				})
 			},
@@ -86,8 +86,8 @@ func TestProtocol_Request(t *testing.T) {
 			clientToServerCh := make(chan schema.JsonRpcMessage, 1)
 
 			// トランスポートを初期化
-			serverTransport := test.NewMockChannelServerTransport(clientToServerCh, serverToClientCh)
-			clientTransport := test.NewMockChannelClientTransport(clientToServerCh, serverToClientCh)
+			serverTransport := mock.NewMockChannelServerTransport(clientToServerCh, serverToClientCh)
+			clientTransport := mock.NewMockChannelClientTransport(clientToServerCh, serverToClientCh)
 
 			// Close時コールバックを登録
 			server.SetOnClose(func() {
@@ -147,7 +147,7 @@ func TestProtocol_Notificate(t *testing.T) {
 	}{
 		{
 			name: "normal case :client send notification successfully",
-			notification: &test.TestNotificationSchema{
+			notification: &mock.TestNotificationSchema{
 				MethodName: "test",
 			},
 		},
@@ -163,8 +163,8 @@ func TestProtocol_Notificate(t *testing.T) {
 			clientToServerCh := make(chan schema.JsonRpcMessage, 1)
 
 			// トランスポートを初期化
-			serverTransport := test.NewMockChannelServerTransport(clientToServerCh, serverToClientCh)
-			clientTransport := test.NewMockChannelClientTransport(clientToServerCh, serverToClientCh)
+			serverTransport := mock.NewMockChannelServerTransport(clientToServerCh, serverToClientCh)
+			clientTransport := mock.NewMockChannelClientTransport(clientToServerCh, serverToClientCh)
 
 			// Close時コールバックを登録
 			server.SetOnClose(func() {
@@ -212,7 +212,7 @@ func TestProtocol_Close(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			protocol := NewProtocol(nil)
-			serverTransport := test.NewMockChannelServerTransport(
+			serverTransport := mock.NewMockChannelServerTransport(
 				make(chan schema.JsonRpcMessage, 1),
 				make(chan schema.JsonRpcMessage, 1),
 			)

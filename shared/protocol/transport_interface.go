@@ -2,7 +2,7 @@ package protocol
 
 import "github.com/kakkky/mcp-sdk-go/shared/schema"
 
-type transport interface {
+type Transport interface {
 	Start()
 	Close()
 	SendMessage(message schema.JsonRpcMessage) error

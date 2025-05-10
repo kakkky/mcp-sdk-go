@@ -20,7 +20,7 @@ type notificationHandler func(notification schema.JsonRpcNotification) error
 
 type responseHandler func(response *schema.JsonRpcResponse, mcpErr error) (schema.Result, error)
 
-func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler requestHandler) {
+func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler func(request schema.JsonRpcRequest) (schema.Result, error)) {
 	method := requestSchema.Method
 	if p.capabilityValidators.validateRequestHandlerCapability != nil {
 		if err := p.capabilityValidators.validateRequestHandlerCapability(method()); err != nil {
@@ -32,13 +32,13 @@ func (p *Protocol) SetRequestHandler(requestSchema schema.Request, handler reque
 	p.handlers.requestHandlers[method()] = handler
 }
 
-func (p *Protocol) SetNotificationHandler(notificationSchema schema.Notification, handler notificationHandler) {
+func (p *Protocol) SetNotificationHandler(notificationSchema schema.Notification, handler func(notification schema.JsonRpcNotification) error) {
 	method := notificationSchema.Method
 	p.handlers.notificationHandlers[method()] = handler
 }
 
 // リクエスト送信の際に、対応するレスポンスハンドラを登録する
-func (p *Protocol) SetResponseHandler(messageId int, handler responseHandler) {
+func (p *Protocol) SetResponseHandler(messageId int, handler func(response *schema.JsonRpcResponse, mcpErr error) (schema.Result, error)) {
 	p.handlers.responseHandlers[messageId] = handler
 }
 

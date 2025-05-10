@@ -21,7 +21,7 @@ type Server struct {
 	capabilities       schema.ServerCapabilities
 	instructions       *string
 	serverInfo         schema.Implementation
-	*protocol.Protocol
+	Protocol
 
 	onInitialized func() error
 }

@@ -1,4 +1,4 @@
-package test
+package mock
 
 // テスト用リクエストスキーマ
 type TestRequestSchema struct {
