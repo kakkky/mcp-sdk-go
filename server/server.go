@@ -43,7 +43,10 @@ func NewServer(serverInfo schema.Implementation, options *ServerOptopns) *Server
 		return s.onInitialize(request)
 	})
 	s.SetNotificationHandler(&schema.InitializeNotificationSchema{}, func(notification schema.JsonRpcNotification) error {
-		return s.onInitialized()
+		if s.onInitialized != nil {
+			return s.onInitialized()
+		}
+		return nil
 	})
 
 	s.SetValidateCapabilityForMethod(s.validateCapabilityForMethod)
