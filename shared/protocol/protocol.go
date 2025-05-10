@@ -9,17 +9,19 @@ import (
 )
 
 type Protocol struct {
-	transport        transport
-	handlers         *handlers
-	requestMessageId int
-	onClose          func()
-	onError          func(error)
+	transport                   transport
+	handlers                    *handlers
+	requestMessageId            int
+	onClose                     func()
+	onError                     func(error)
+	options                     *ProtocolOptions
+	onAssertCapabilityForMethod func(method string) error
 
 	respCh    chan schema.Result
 	errRespCh chan error
 }
 
-func NewProtocol() *Protocol {
+func NewProtocol(options *ProtocolOptions) *Protocol {
 	p := &Protocol{
 		handlers: &handlers{
 			requestHandlers:      make(map[string]requestHandler),
@@ -27,6 +29,7 @@ func NewProtocol() *Protocol {
 			responseHandlers:     make(map[int]responseHandler),
 		},
 		requestMessageId: 0,
+		options:          options,
 		respCh:           make(chan schema.Result, 1),
 		errRespCh:        make(chan error, 1),
 	}
@@ -80,6 +83,13 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (schema.Res
 	if p.transport == nil {
 		return nil, fmt.Errorf("not connected")
 	}
+
+	if p.options != nil && p.options.enforceStrictCapabilities && p.onAssertCapabilityForMethod != nil {
+		if err := p.onAssertCapabilityForMethod(request.Method()); err != nil {
+			return nil, err
+		}
+
+	}
 	p.requestMessageId += 1
 	messageId := p.requestMessageId
 	jsonRpcRequest := schema.JsonRpcRequest{
@@ -125,4 +135,8 @@ func (p *Protocol) Notificate(notification schema.Notification) error {
 		return err
 	}
 	return nil
+}
+
+func (p *Protocol) SetOnAssertCapabilityForMethod(onAssertCapabilityForMethod func(method string) error) {
+	p.onAssertCapabilityForMethod = onAssertCapabilityForMethod
 }

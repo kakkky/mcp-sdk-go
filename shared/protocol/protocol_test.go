@@ -18,7 +18,7 @@ func TestProtocol_Connect(t *testing.T) {
 	)
 
 	// Protocol インスタンスを作成
-	protocol := NewProtocol()
+	protocol := NewProtocol(nil)
 
 	// Connect メソッドを呼び出し
 	protocol.Connect(transport)
@@ -78,8 +78,8 @@ func TestProtocol_Request(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// プロトコルのインスタンスを作成
-			server := NewProtocol()
-			client := NewProtocol()
+			server := NewProtocol(nil)
+			client := NewProtocol(nil)
 
 			// トランスポートのモックを作成
 			serverToClientCh := make(chan schema.JsonRpcMessage, 1)
@@ -113,11 +113,11 @@ func TestProtocol_Request(t *testing.T) {
 			// リクエストを受け取ったら、レスポンスを返すことを確認する
 			got, err := client.Request(tt.request, tt.resultSchema)
 			// テストケースがMCPエラーを期待する場合、エラーが期待通りか確認
-			if (err != nil) != tt.isExpectedMcpErr {
-				t.Errorf("Request() got error = %v, want %v", err, tt.isExpectedMcpErr)
-				return
-			}
 			if tt.isExpectedMcpErr {
+				if err == nil {
+					t.Errorf("Request() got error = %v, want %v", err, tt.isExpectedMcpErr)
+					return
+				}
 				e, ok := err.(*mcp_err.McpErr)
 				if !ok {
 					t.Errorf("Request() got error = %v, want %v", err, tt.isExpectedMcpErr)
@@ -127,6 +127,10 @@ func TestProtocol_Request(t *testing.T) {
 					t.Errorf("Request() got error code = %v, want %v", e.Code, tt.expectedErrCode)
 					return
 				}
+				return
+			}
+			if err != nil {
+				t.Errorf("Request() got error = %v", err)
 				return
 			}
 			if diff := cmp.Diff(got, tt.expectedResult); diff != "" {
@@ -151,8 +155,8 @@ func TestProtocol_Notificate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// プロトコルのインスタンスを作成
-			server := NewProtocol()
-			client := NewProtocol()
+			server := NewProtocol(nil)
+			client := NewProtocol(nil)
 
 			// トランスポートのモックを作成
 			serverToClientCh := make(chan schema.JsonRpcMessage, 1)
@@ -207,7 +211,7 @@ func TestProtocol_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			protocol := NewProtocol()
+			protocol := NewProtocol(nil)
 			serverTransport := test.NewMockChannelServerTransport(
 				make(chan schema.JsonRpcMessage, 1),
 				make(chan schema.JsonRpcMessage, 1),
