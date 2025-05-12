@@ -155,3 +155,9 @@ func (s *Server) SendToolListChanged() error {
 		MethodName: "notifications/tools/list_changed",
 	})
 }
+
+func (s *Server) SendPromptListChanged() error {
+	return s.Notificate(&schema.PromptListChangedNotificationSchema{
+		MethodName: "notifications/prompts/list_changed",
+	})
+}

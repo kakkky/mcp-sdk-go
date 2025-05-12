@@ -80,3 +80,15 @@ func (n *ToolListChangedNotificationSchema) Method() string {
 func (n *ToolListChangedNotificationSchema) Params() any {
 	return nil
 }
+
+type PromptListChangedNotificationSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (n *PromptListChangedNotificationSchema) Method() string {
+	return n.MethodName
+}
+
+func (n *PromptListChangedNotificationSchema) Params() any {
+	return nil
+}
