@@ -40,3 +40,20 @@ func (n *LoggingMessageNotificationSchema) Method() string {
 func (n *LoggingMessageNotificationSchema) Params() any {
 	return n.ParamsData
 }
+
+type ResourceUpdatedNotificationSchema struct {
+	MethodName string                            `json:"method"`
+	ParamsData ResourceUpdatedNotificationParams `json:"params"`
+}
+
+type ResourceUpdatedNotificationParams struct {
+	Uri string `json:"uri"`
+}
+
+func (n *ResourceUpdatedNotificationSchema) Method() string {
+	return n.MethodName
+}
+
+func (n *ResourceUpdatedNotificationSchema) Params() any {
+	return n.ParamsData
+}

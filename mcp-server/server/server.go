@@ -137,3 +137,9 @@ func (s *Server) SendLogginMessage(params schema.LoggingMessageNotificationParam
 	})
 }
 
+func (s *Server) SendResourceUpdated(params schema.ResourceUpdatedNotificationParams) error {
+	return s.Notificate(&schema.ResourceUpdatedNotificationSchema{
+		MethodName: "notifications/resources/updated",
+		ParamsData: params,
+	})
+}
