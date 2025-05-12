@@ -32,6 +32,6 @@ func (r *CreateMessageResultSchema[T]) Result() any {
 	return r
 }
 
-type ListRootsResultSchema struct {
+type ListRootResultSchema struct {
 	Roots []RootSchema `json:"roots"`
 }
