@@ -56,7 +56,7 @@ func NewServer(serverInfo schema.Implementation, options *ServerOptopns) *Server
 	return s
 }
 
-func (s *Server) registerCapabilities(capabilities schema.ServerCapabilities) error {
+func (s *Server) RegisterCapabilities(capabilities schema.ServerCapabilities) error {
 	if s.Transport() == nil {
 		return errors.New("cannot register capabilities after connecting to transport")
 	}
