@@ -68,3 +68,15 @@ func (n *ResourceListChangedNotificationSchema) Method() string {
 func (n *ResourceListChangedNotificationSchema) Params() any {
 	return nil
 }
+
+type ToolListChangedNotificationSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (n *ToolListChangedNotificationSchema) Method() string {
+	return n.MethodName
+}
+
+func (n *ToolListChangedNotificationSchema) Params() any {
+	return nil
+}

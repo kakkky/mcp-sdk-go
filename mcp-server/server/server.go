@@ -149,3 +149,9 @@ func (s *Server) SendResourceListChanged() error {
 		MethodName: "notifications/resources/list_changed",
 	})
 }
+
+func (s *Server) SendToolListChanged() error {
+	return s.Notificate(&schema.ToolListChangedNotificationSchema{
+		MethodName: "notifications/tools/list_changed",
+	})
+}
