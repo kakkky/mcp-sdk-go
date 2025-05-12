@@ -41,6 +41,20 @@ func (m *MockProtocol) EXPECT() *MockProtocolMockRecorder {
 	return m.recorder
 }
 
+// Notificate mocks base method.
+func (m *MockProtocol) Notificate(notification schema.Notification) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Notificate", notification)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Notificate indicates an expected call of Notificate.
+func (mr *MockProtocolMockRecorder) Notificate(notification any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notificate", reflect.TypeOf((*MockProtocol)(nil).Notificate), notification)
+}
+
 // Request mocks base method.
 func (m *MockProtocol) Request(request schema.Request, resultSchema any) (schema.Result, error) {
 	m.ctrl.T.Helper()

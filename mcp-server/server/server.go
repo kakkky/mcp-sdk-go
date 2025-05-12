@@ -129,3 +129,11 @@ func (s *Server) ListRoots() (schema.Result, error) {
 		MethodName: "roots/list",
 	}, &schema.ListRootsResultSchema{})
 }
+
+func (s *Server) SendLogginMessage(params schema.LoggingMessageNotificationParams) error {
+	return s.Notificate(&schema.LoggingMessageNotificationSchema{
+		MethodName: "notifications/message",
+		ParamsData: params,
+	})
+}
+

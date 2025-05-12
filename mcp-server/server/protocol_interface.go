@@ -16,4 +16,5 @@ type Protocol interface {
 	Transport() protocol.Transport
 
 	Request(request schema.Request, resultSchema any) (schema.Result, error)
+	Notificate(notification schema.Notification) error
 }

@@ -21,3 +21,22 @@ func (n *InitializeNotificationSchema) Method() string {
 func (n *InitializeNotificationSchema) Params() any {
 	return nil
 }
+
+type LoggingMessageNotificationSchema struct {
+	MethodName string                           `json:"method"`
+	ParamsData LoggingMessageNotificationParams `json:"params"`
+}
+
+type LoggingMessageNotificationParams struct {
+	Level  LoggingLevelSchema `json:"level"`
+	Logger *string            `json:"logger,omitempty"`
+	Data   any                `json:"data"`
+}
+
+func (n *LoggingMessageNotificationSchema) Method() string {
+	return n.MethodName
+}
+
+func (n *LoggingMessageNotificationSchema) Params() any {
+	return n.ParamsData
+}
