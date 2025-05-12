@@ -143,3 +143,9 @@ func (s *Server) SendResourceUpdated(params schema.ResourceUpdatedNotificationPa
 		ParamsData: params,
 	})
 }
+
+func (s *Server) SendResourceListChanged() error {
+	return s.Notificate(&schema.ResourceListChangedNotificationSchema{
+		MethodName: "notifications/resources/list_changed",
+	})
+}

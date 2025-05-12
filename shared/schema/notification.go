@@ -57,3 +57,14 @@ func (n *ResourceUpdatedNotificationSchema) Method() string {
 func (n *ResourceUpdatedNotificationSchema) Params() any {
 	return n.ParamsData
 }
+
+type ResourceListChangedNotificationSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (n *ResourceListChangedNotificationSchema) Method() string {
+	return n.MethodName
+}
+func (n *ResourceListChangedNotificationSchema) Params() any {
+	return nil
+}
