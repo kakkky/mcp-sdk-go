@@ -63,3 +63,8 @@ type AudioContentSchema struct {
 	Data     string `json:"data"` // base64 encoded audio data
 	MimeType string `json:"mimeType"`
 }
+
+type RootSchema struct {
+	Uri  string  `json:"uri"` // starting with file://
+	Name *string `json:"name,omitempty"`
+}

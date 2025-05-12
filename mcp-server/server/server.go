@@ -123,3 +123,9 @@ func (s *Server) CreateMessage(params any, contentType string) (schema.Result, e
 	}
 	return nil, fmt.Errorf("invalid content type: %s", contentType)
 }
+
+func (s *Server) ListRoots() (schema.Result, error) {
+	return s.Request(&schema.ListRootsRequestSchema{
+		MethodName: "roots/list",
+	}, &schema.ListRootsResultSchema{})
+}

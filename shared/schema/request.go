@@ -69,3 +69,15 @@ func (r *CreateMessageRequestSchema[T]) Method() string {
 func (r *CreateMessageRequestSchema[T]) Params() any {
 	return r.ParamsData
 }
+
+type ListRootsRequestSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (r *ListRootsRequestSchema) Method() string {
+	return r.MethodName
+}
+
+func (r *ListRootsRequestSchema) Params() any {
+	return nil
+}

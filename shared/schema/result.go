@@ -31,3 +31,7 @@ type CreateMessageResultSchema[T ContentSchema] struct {
 func (r *CreateMessageResultSchema[T]) Result() any {
 	return r
 }
+
+type ListRootsResultSchema struct {
+	Roots []RootSchema `json:"roots"`
+}
