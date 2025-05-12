@@ -9,7 +9,7 @@ import (
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
-type ServerOptopns struct {
+type ServerOptions struct {
 	Capabilities schema.ServerCapabilities
 	Instructions string
 	protocol.ProtocolOptions
@@ -26,7 +26,7 @@ type Server struct {
 	onInitialized func() error
 }
 
-func NewServer(serverInfo schema.Implementation, options *ServerOptopns) *Server {
+func NewServer(serverInfo schema.Implementation, options *ServerOptions) *Server {
 	s := &Server{
 		serverInfo: serverInfo,
 	}
