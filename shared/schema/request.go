@@ -52,16 +52,6 @@ type CreateMessageRequestParams[T ContentSchema] struct {
 	ModelPreference *ModelPreferencesSchema    `json:"modelPreference,omitempty"`
 }
 
-type ModelPreferencesSchema struct {
-	Hints                []*ModelHintsSchema `json:"hints,omitempty"`
-	CostPriority         *int                `json:"costPriority,omitempty"`         // 0 <= costPriority <= 1
-	SpeedPriority        *int                `json:"speedPriority,omitempty"`        // 0 <= speedPriority <= 1
-	IntelligencePriority *int                `json:"intelligencePriority,omitempty"` // 0 <= intelligencePriority <= 1
-}
-type ModelHintsSchema struct {
-	Name *string `json:"name,omitempty"`
-}
-
 func (r *CreateMessageRequestSchema[T]) Method() string {
 	return r.MethodName
 }
