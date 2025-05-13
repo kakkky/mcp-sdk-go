@@ -35,3 +35,15 @@ func (r *CreateMessageResultSchema[T]) Result() any {
 type ListRootResultSchema struct {
 	Roots []RootSchema `json:"roots"`
 }
+
+func (r *ListRootResultSchema) Result() any {
+	return r
+}
+
+type ReadResourceResultSchema[T ResourceContentSchema] struct {
+	Contents []T `json:"contents"`
+}
+
+func (r *ReadResourceResultSchema[T]) Result() any {
+	return r
+}

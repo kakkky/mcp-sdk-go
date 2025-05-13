@@ -6,7 +6,7 @@ import (
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
-type registerdResources struct {
+type registeredResources struct {
 	name         string
 	metadata     schema.ResourceMetadata
 	readCallback readResourceCallback[schema.ResourceContentSchema]
