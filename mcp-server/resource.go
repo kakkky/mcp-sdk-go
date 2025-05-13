@@ -6,7 +6,7 @@ import (
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
-type registeredResources struct {
+type RegisteredResources struct {
 	name         string
 	metadata     schema.ResourceMetadata
 	readCallback readResourceCallback[schema.ResourceContentSchema]
@@ -22,4 +22,6 @@ type registeredResources struct {
 	})
 }
 
-type readResourceCallback[T schema.ResourceContentSchema] func(url url.URL) (schema.ReadResourceResultSchema[T], error)
+type ReadResourceCallback[T schema.ResourceContentSchema] func(url url.URL) (schema.ReadResourceResultSchema[T], error)
+
+type registered

@@ -6,5 +6,5 @@ import (
 
 type McpServer struct {
 	*server.Server
-	registeredResources map[string]registeredResources
+	registeredResources map[string]RegisteredResources
 }
