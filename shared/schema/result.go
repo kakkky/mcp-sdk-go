@@ -47,3 +47,7 @@ type ReadResourceResultSchema[T ResourceContentSchema] struct {
 func (r *ReadResourceResultSchema[T]) Result() any {
 	return r
 }
+
+type ListResourcesResultSchema struct {
+	Resources []ResourceSchema `json:"resources"`
+}
