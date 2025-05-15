@@ -21,7 +21,10 @@ func TestProtocol_Connect(t *testing.T) {
 	protocol := NewProtocol(nil)
 
 	// Connect メソッドを呼び出し
-	protocol.Connect(transport)
+	err := protocol.Connect(transport)
+	if err != nil {
+		t.Fatalf("Connect() error = %v", err)
+	}
 
 	// Transport が正しく設定されているか確認
 	if protocol.Transport() != transport {
@@ -103,12 +106,22 @@ func TestProtocol_Request(t *testing.T) {
 			}
 
 			// 通信を開始
-			server.Connect(serverTransport)
-			client.Connect(clientTransport)
+			if err := server.Connect(serverTransport); err != nil {
+				t.Errorf("Connect() error = %v", err)
+				return
+			}
+			if err := client.Connect(clientTransport); err != nil {
+				t.Errorf("Connect() error = %v", err)
+				return
+			}
 			// クリーンアップ
 			defer func() {
-				server.Close()
-				client.Close()
+				if err := server.Close(); err != nil {
+					t.Errorf("Close() error = %v", err)
+				}
+				if err := client.Close(); err != nil {
+					t.Errorf("Close() error = %v", err)
+				}
 			}()
 			// リクエストを受け取ったら、レスポンスを返すことを確認する
 			got, err := client.Request(tt.request, tt.resultSchema)

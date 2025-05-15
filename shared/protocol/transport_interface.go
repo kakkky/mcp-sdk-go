@@ -3,8 +3,8 @@ package protocol
 import "github.com/kakkky/mcp-sdk-go/shared/schema"
 
 type Transport interface {
-	Start()
-	Close()
+	Start() error
+	Close() error
 	SendMessage(message schema.JsonRpcMessage) error
 	OnReceiveMessage(message schema.JsonRpcMessage)
 	OnClose()

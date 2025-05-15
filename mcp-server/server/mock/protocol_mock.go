@@ -41,6 +41,34 @@ func (m *MockProtocol) EXPECT() *MockProtocolMockRecorder {
 	return m.recorder
 }
 
+// Close mocks base method.
+func (m *MockProtocol) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockProtocolMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockProtocol)(nil).Close))
+}
+
+// Connect mocks base method.
+func (m *MockProtocol) Connect(transport protocol.Transport) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Connect", transport)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Connect indicates an expected call of Connect.
+func (mr *MockProtocolMockRecorder) Connect(transport any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Connect", reflect.TypeOf((*MockProtocol)(nil).Connect), transport)
+}
+
 // Notificate mocks base method.
 func (m *MockProtocol) Notificate(notification schema.Notification) error {
 	m.ctrl.T.Helper()

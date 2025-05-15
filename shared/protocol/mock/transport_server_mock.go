@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
@@ -22,7 +23,7 @@ func NewMockChannelServerTransport(clientToServerCh chan schema.JsonRpcMessage, 
 	}
 }
 
-func (m *MockChannelServerTransport) Start() {
+func (m *MockChannelServerTransport) Start() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	m.cancel = cancel
 	go func() {
@@ -38,13 +39,18 @@ func (m *MockChannelServerTransport) Start() {
 			}
 		}
 	}()
+	return nil
 }
 
-func (m *MockChannelServerTransport) Close() {
+func (m *MockChannelServerTransport) Close() error {
 	if m.onClose != nil {
 		m.onClose()
 	}
+	if m.cancel == nil {
+		return fmt.Errorf("cancel is nil")
+	}
 	m.cancel()
+	return nil
 }
 
 func (m *MockChannelServerTransport) SendMessage(message schema.JsonRpcMessage) error {

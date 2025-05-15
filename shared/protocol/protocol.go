@@ -68,20 +68,26 @@ func (p *Protocol) SetOnError(onError func(error)) {
 	p.onError = onError
 }
 
-func (p *Protocol) Connect(transport Transport) {
+func (p *Protocol) Connect(transport Transport) error {
 	p.transport = transport
 	p.transport.SetOnClose(p.onClose)
 
 	p.transport.SetOnError(p.onError)
 	p.transport.SetOnReceiveMessage(p.onReceiveMessage)
-	p.transport.Start()
+	if err := p.transport.Start(); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (p *Protocol) Close() {
+func (p *Protocol) Close() error {
 	if p.transport == nil {
-		return
+		return fmt.Errorf("not connected")
 	}
-	p.transport.Close()
+	if err := p.transport.Close(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (p *Protocol) Transport() Transport {
