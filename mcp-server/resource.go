@@ -3,8 +3,8 @@ package mcpserver
 import (
 	"net/url"
 
-	utilities "github.com/kakkky/mcp-sdk-go/mcp-server/utilities/uri-template"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
+	utilities "github.com/kakkky/mcp-sdk-go/shared/utilities/uri-template"
 )
 
 type RegisteredResource struct {
