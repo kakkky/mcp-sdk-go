@@ -9,6 +9,7 @@ import (
 type Protocol interface {
 	SetRequestHandler(schema schema.Request, handler func(schema.JsonRpcRequest) (schema.Result, error))
 	SetNotificationHandler(schema schema.Notification, handler func(schema.JsonRpcNotification) error)
+	ValidateCanSetRequestHandler(method string) error
 
 	SetValidateCapabilityForMethod(validator func(method string) error)
 	SetValidateNotificationCapability(validator func(method string) error)

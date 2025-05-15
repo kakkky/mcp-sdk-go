@@ -159,3 +159,17 @@ func (mr *MockProtocolMockRecorder) Transport() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transport", reflect.TypeOf((*MockProtocol)(nil).Transport))
 }
+
+// ValidateCanSetRequestHandler mocks base method.
+func (m *MockProtocol) ValidateCanSetRequestHandler(method string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateCanSetRequestHandler", method)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidateCanSetRequestHandler indicates an expected call of ValidateCanSetRequestHandler.
+func (mr *MockProtocolMockRecorder) ValidateCanSetRequestHandler(method any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateCanSetRequestHandler", reflect.TypeOf((*MockProtocol)(nil).ValidateCanSetRequestHandler), method)
+}
