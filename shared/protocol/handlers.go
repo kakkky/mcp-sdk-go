@@ -48,3 +48,10 @@ func (p *Protocol) SetFallbackNotificationHandler(handler func(), notification s
 func (p *Protocol) SetFallbackRequestHandler(handler func(), request schema.Request) {
 	p.handlers.fallbackRequestHandler = handler
 }
+
+func (p *Protocol) ValidateCanSetRequestHandler(method string) error {
+	if p.handlers.requestHandlers[method] != nil {
+		return fmt.Errorf("request handler for method %s already exists , which would be overridden", method)
+	}
+	return nil
+}
