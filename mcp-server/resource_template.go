@@ -8,10 +8,12 @@ import (
 type ResourceTemplate struct {
 	uriTemp   *utilities.UriTemplate
 	callBacks *struct {
-		list     *ListResourcesCallback
-		complete map[string]*CompleteResourceCallback
+		list     ListResourcesCallback
+		complete map[string]CompleteResourceCallback
 	}
 }
+
+// uriTemp（テンプレート）に具体的な値を埋め込んだURIを持つリソースをリストで返すコールバック
 type ListResourcesCallback func() schema.ListResourcesResultSchema
 type CompleteResourceCallback func() []string
 
@@ -29,14 +31,14 @@ func (r *ResourceTemplate) uriTemplate() *utilities.UriTemplate {
 	return r.uriTemp
 }
 
-func (r *ResourceTemplate) ListCallback() *ListResourcesCallback {
+func (r *ResourceTemplate) ListCallback() ListResourcesCallback {
 	if r.callBacks == nil {
 		return nil
 	}
 	return r.callBacks.list
 }
 
-func (r *ResourceTemplate) CompleteCallBack(variable string) *CompleteResourceCallback {
+func (r *ResourceTemplate) CompleteCallBack(variable string) CompleteResourceCallback {
 	if r.callBacks == nil {
 		return nil
 	}

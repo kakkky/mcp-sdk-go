@@ -71,3 +71,42 @@ func (r *ListRootsRequestSchema) Method() string {
 func (r *ListRootsRequestSchema) Params() any {
 	return nil
 }
+
+type ListResourceRequestSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (r *ListResourceRequestSchema) Method() string {
+	return r.MethodName
+}
+
+func (r *ListResourceRequestSchema) Params() any {
+	return nil
+}
+
+type ListResourceTemplatesRequestSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (r *ListResourceTemplatesRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *ListResourceTemplatesRequestSchema) Params() any {
+	return nil
+}
+
+type ReadResourceRequestSchema struct {
+	MethodName string                    `json:"method"`
+	ParamsData ReadResourceRequestParams `json:"params"`
+}
+
+type ReadResourceRequestParams struct {
+	Uri string `json:"uri"`
+}
+
+func (r *ReadResourceRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *ReadResourceRequestSchema) Params() any {
+	return r.ParamsData
+}

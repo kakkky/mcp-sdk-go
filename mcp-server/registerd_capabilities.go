@@ -28,7 +28,7 @@ type ReadResourceCallback[T schema.ResourceContentSchema] func(url url.URL) (sch
 type RegisteredResourceTemplate struct {
 	resourceTemplate *ResourceTemplate
 	metadata         schema.ResourceMetadata
-	readCallback     ReadResourceCallback[schema.ResourceContentSchema]
+	readCallback     ReadResourceTemplateCallback[schema.ResourceContentSchema]
 	enabled          bool
 	enable           func()
 	disable          func()

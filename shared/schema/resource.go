@@ -1,8 +1,8 @@
 package schema
 
 type ResourceSchema struct {
-	Uri  string  `json:"uri"`
-	Name *string `json:"name"`
+	Uri  string `json:"uri"`
+	Name string `json:"name"`
 	ResourceMetadata
 }
 

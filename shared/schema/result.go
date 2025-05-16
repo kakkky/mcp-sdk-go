@@ -51,3 +51,15 @@ func (r *ReadResourceResultSchema[T]) Result() any {
 type ListResourcesResultSchema struct {
 	Resources []ResourceSchema `json:"resources"`
 }
+
+func (r *ListResourcesResultSchema) Result() any {
+	return r
+}
+
+type ListResourceTemplatesResultSchema struct {
+	ResourceTemplates []ResourceTemplateSchema
+}
+
+func (r *ListResourceTemplatesResultSchema) Result() any {
+	return r
+}
