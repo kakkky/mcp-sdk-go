@@ -3,7 +3,7 @@ package schema
 type ResourceSchema struct {
 	Uri  string `json:"uri"`
 	Name string `json:"name"`
-	ResourceMetadata
+	*ResourceMetadata
 }
 
 type ResourceMetadata struct {
