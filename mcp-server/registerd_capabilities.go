@@ -11,17 +11,17 @@ type RegisteredResource struct {
 	metadata     *schema.ResourceMetadata
 	readCallback ReadResourceCallback[schema.ResourceContentSchema]
 	enabled      bool
-	enable       func()
-	disable      func()
-	update       func(resourceUpdates)
-	remove       func()
+	Enable       func()
+	Disable      func()
+	Update       func(ResourceUpdates)
+	Remove       func()
 }
-type resourceUpdates struct {
-	name     *string
-	uri      *string
-	metadata *schema.ResourceMetadata
-	callback *ReadResourceCallback[schema.ResourceContentSchema]
-	enabled  bool
+type ResourceUpdates struct {
+	Name     *string
+	Uri      *string
+	Metadata *schema.ResourceMetadata
+	Callback *ReadResourceCallback[schema.ResourceContentSchema]
+	Enabled  *bool
 }
 
 type ReadResourceCallback[T schema.ResourceContentSchema] func(url url.URL) (schema.ReadResourceResultSchema[T], error)
@@ -31,18 +31,18 @@ type RegisteredResourceTemplate struct {
 	metadata         *schema.ResourceMetadata
 	readCallback     ReadResourceTemplateCallback[schema.ResourceContentSchema]
 	enabled          bool
-	enable           func()
-	disable          func()
-	update           func(resourceTemplateUpdates)
-	remove           func()
+	Enable           func()
+	Disable          func()
+	Update           func(ResourceTemplateUpdates)
+	Remove           func()
 }
 
-type resourceTemplateUpdates struct {
-	name     *string
-	template *ResourceTemplate
-	metadata *schema.ResourceMetadata
-	callback *ReadResourceTemplateCallback[schema.ResourceContentSchema]
-	enabled  bool
+type ResourceTemplateUpdates struct {
+	Name     *string
+	Template *ResourceTemplate
+	Metadata *schema.ResourceMetadata
+	Callback *ReadResourceTemplateCallback[schema.ResourceContentSchema]
+	Enabled  *bool
 }
 
 type ReadResourceTemplateCallback[T schema.ResourceContentSchema] func(url url.URL, variables map[string]any) schema.ReadResourceResultSchema[T]
