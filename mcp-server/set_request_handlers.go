@@ -109,5 +109,6 @@ func (m *McpServer) setResourceRequestHandlers() error {
 		return &result, nil
 	})
 
+	m.isResourceHandlersInitialized = true
 	return nil
 }
