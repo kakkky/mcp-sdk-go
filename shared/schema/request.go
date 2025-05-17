@@ -110,3 +110,20 @@ func (r *ReadResourceRequestSchema) Method() string {
 func (r *ReadResourceRequestSchema) Params() any {
 	return r.ParamsData
 }
+
+type CompleteRequestSchema struct {
+	MethodName string                `json:"method"`
+	ParamsData CompleteRequestParams `json:"params"`
+}
+
+type CompleteRequestParams struct {
+	Ref      ReferenceSchema          `json:"ref"`
+	Argument CompleteRequestParamsArg `json:"argument"`
+}
+
+func (r *CompleteRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *CompleteRequestSchema) Params() any {
+	return r.ParamsData
+}

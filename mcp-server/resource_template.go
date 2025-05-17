@@ -15,7 +15,7 @@ type ResourceTemplate struct {
 
 // uriTemp（テンプレート）に具体的な値を埋め込んだURIを持つリソースをリストで返すコールバック
 type ListResourcesCallback func() schema.ListResourcesResultSchema
-type CompleteResourceCallback func() []string
+type CompleteResourceCallback func(value string) []string
 
 func NewResourceTemplate(uriTemplate string) (*ResourceTemplate, error) {
 	uriTemp, err := utilities.NewUriTemplate(uriTemplate)

@@ -63,3 +63,11 @@ type ListResourceTemplatesResultSchema struct {
 func (r *ListResourceTemplatesResultSchema) Result() any {
 	return r
 }
+
+type CompleteResultSchema struct {
+	Completion CompletionSchema `json:"completion"`
+}
+
+func (r *CompleteResultSchema) Result() any {
+	return r
+}

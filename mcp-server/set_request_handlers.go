@@ -109,6 +109,39 @@ func (m *McpServer) setResourceRequestHandlers() error {
 		return &result, nil
 	})
 
+	m.setCompletionRequestHandlers()
+
 	m.isResourceHandlersInitialized = true
+	return nil
+}
+
+func (m *McpServer) setCompletionRequestHandlers() error {
+	if m.isCompletionHandlersInitialized {
+		return nil
+	}
+	if err := m.server.ValidateCanSetRequestHandler("completion/complete"); err != nil {
+		return err
+	}
+	m.server.SetRequestHandler(&schema.CompleteRequestSchema{MethodName: "completion/complete"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
+		request, ok := req.Request.(*schema.CompleteRequestSchema)
+		if !ok {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_REQUEST, "invalid request", nil)
+		}
+		params := request.Params().(*schema.CompleteRequestParams)
+		switch params.Ref.Type() {
+		case "ref/prompt":
+			// TODO: implement
+		case "ref/resource":
+			ref, ok := params.Ref.(*schema.ResourceReferenceSchema)
+			if !ok {
+				return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, "invalid ref type", nil)
+			}
+			return m.handleResourceCompletion(*request, *ref)
+		default:
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("invalid completion reference : %s", params.Ref), nil)
+		}
+		return nil, nil
+	})
+	m.isCompletionHandlersInitialized = true
 	return nil
 }

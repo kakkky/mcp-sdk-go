@@ -10,10 +10,11 @@ import (
 )
 
 type McpServer struct {
-	server                        *server.Server
-	registeredResources           map[string]*RegisteredResource
-	registeredResourceTemplates   map[string]*RegisteredResourceTemplate
-	isResourceHandlersInitialized bool
+	server                          *server.Server
+	registeredResources             map[string]*RegisteredResource
+	registeredResourceTemplates     map[string]*RegisteredResourceTemplate
+	isResourceHandlersInitialized   bool
+	isCompletionHandlersInitialized bool
 }
 
 func NewMcpServer(serverInfo schema.Implementation, options *server.ServerOptions) *McpServer {
