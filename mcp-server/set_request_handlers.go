@@ -92,7 +92,10 @@ func (m *McpServer) setResourceRequestHandlers() error {
 					return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("invalid uri template %s", request.ParamsData.Uri), nil)
 				}
 				if variables != nil {
-					result := registerdResourceTemplate.readCallback(*uri, variables)
+					result, err := registerdResourceTemplate.readCallback(*uri, variables)
+					if err != nil {
+						return nil, mcperr.NewMcpErr(mcperr.INTERNAL_ERROR, fmt.Sprintf("failed to read resource %s", uri.String()), err)
+					}
 					return &result, nil
 				}
 			}
