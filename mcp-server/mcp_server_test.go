@@ -2,6 +2,7 @@ package mcpserver
 
 import (
 	"net/url"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -9,6 +10,7 @@ import (
 	"github.com/kakkky/mcp-sdk-go/mcp-server/server"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 	utilities "github.com/kakkky/mcp-sdk-go/shared/utilities/uri-template"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMcpServer_Resource(t *testing.T) {
@@ -84,7 +86,7 @@ func TestMcpServer_Resource(t *testing.T) {
 				return
 			}
 
-			var cmpOpts = cmp.Options{
+			cmpOpts := cmp.Options{
 				cmpopts.IgnoreFields(RegisteredResource{}, "readCallback", "Enable", "Disable", "Update", "Remove"),
 				cmp.AllowUnexported(RegisteredResource{}),
 				cmpopts.IgnoreFields(RegisteredResourceTemplate{}, "readCallback", "Enable", "Disable", "Update", "Remove"),
@@ -110,7 +112,7 @@ func TestMcpServer_Resource(t *testing.T) {
 				}
 			}
 
-			// リソースを更新
+			// リソースを更新できる
 			if gotResource != nil {
 				updatedUri := "file://test2.txt"
 				// URIを更新する
@@ -133,7 +135,7 @@ func TestMcpServer_Resource(t *testing.T) {
 					t.Errorf("McpServer.Resource() registeredResources = %v, want %v", sut.registeredResources[updatedUri], nil)
 				}
 			}
-			// リソーステンプレートを更新
+			// リソーステンプレートを更新できる
 			if gotResourceTemplate != nil {
 				// nameを更新する
 				updatedName := "updated"
@@ -156,6 +158,26 @@ func TestMcpServer_Resource(t *testing.T) {
 				// リソーステンプレートが更新されていることを確認
 				if diff := cmp.Diff(sut.registeredResourceTemplates[updatedName], gotResourceTemplate, cmpOpts); diff != "" {
 					t.Errorf("McpServer.Resource() registeredResourceTemplates = %v, want %v, diff %s", sut.registeredResourceTemplates[tt.args.name], gotResourceTemplate, diff)
+				}
+			}
+			// リクエストハンドラが登録されていることを確認
+			if gotResource != nil || gotResourceTemplate != nil {
+				protocol := reflect.ValueOf(sut.server.Protocol).Elem()
+				handlers := protocol.FieldByName("handlers").Elem()
+				requestHandlers := handlers.FieldByName("requestHandlers")
+				// リクエストハンドラーとして登録されているメソッド一覧を取得
+				var methods []string
+				for _, method := range requestHandlers.MapKeys() {
+					methods = append(methods, method.String())
+				}
+				// 想定されるメソッド一覧と比較
+				basicMethods := []string{"ping", "initialize"}
+				expectedMethods := append([]string{"resources/list", "resources/templates/list", "resources/read", "completion/complete"}, basicMethods...)
+				if len(methods) != len(expectedMethods) {
+					t.Errorf("McpServer.Resource() requestHandlers = %v, want %v", len(methods), len(expectedMethods))
+				}
+				if !assert.ElementsMatch(t, methods, expectedMethods) {
+					t.Errorf("McpServer.Resource() requestHandlers = %v, want %v", methods, expectedMethods)
 				}
 			}
 		})
