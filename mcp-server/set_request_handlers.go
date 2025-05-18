@@ -73,7 +73,7 @@ func (m *McpServer) setResourceRequestHandlers() error {
 		}, nil
 	})
 
-	m.server.SetRequestHandler(&schema.ReadResourceRequestSchema{MethodName: "resoures/read"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
+	m.server.SetRequestHandler(&schema.ReadResourceRequestSchema{MethodName: "resources/read"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
 		request, ok := req.Request.(*schema.ReadResourceRequestSchema)
 		if !ok {
 			return nil, mcperr.NewMcpErr(mcperr.INVALID_REQUEST, "invalid request", nil)
