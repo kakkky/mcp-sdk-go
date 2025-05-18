@@ -12,7 +12,7 @@ type InitializeNotificationSchema struct {
 }
 
 func (n *InitializeNotificationSchema) Method() string {
-	if n.MethodName != "notification/initialize" {
+	if n.MethodName != "notifications/initialized" {
 		fmt.Println("Invalid method name")
 	}
 	return n.MethodName
