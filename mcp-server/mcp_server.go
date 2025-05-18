@@ -41,84 +41,86 @@ func (m *McpServer) isConnected() bool {
 // uriを渡す場合は、readResourceCallBackを渡す
 // templateを渡す場合は、readResourceTemplateCallBackを渡す
 func (m *McpServer) Resource(
-	name *string,
-	uri *string,
+	name string,
+	uri string,
 	template *ResourceTemplate,
 	metadata *schema.ResourceMetadata,
-	readResourceCallBack ReadResourceCallback[schema.ResourceContentSchema], //  uriを渡す場合
+	readResourceCallBack ReadResourceCallback[schema.ResourceContentSchema], // uriを渡す場合
 	readResourceTemplateCallBack ReadResourceTemplateCallback[schema.ResourceContentSchema], // templateを渡す場合
 ) (*RegisteredResource, *RegisteredResourceTemplate, error) {
-	if (uri == nil && template == nil) || (uri != nil && template != nil) {
+	if (uri == "" && template == nil) || (uri != "" && template != nil) {
 		return nil, nil, errors.New("please provide a value for either uri or template")
 	}
 	// uriが渡された場合
-	if uri != nil {
+	if uri != "" {
+		uriPtr := &uri
 		if readResourceCallBack == nil {
 			return nil, nil, errors.New("readResourceCallBack is required when uri is provided")
 		}
-		if m.registeredResources[*uri] != nil {
-			return nil, nil, fmt.Errorf("resource %s is already registered", *uri)
+		if m.registeredResources[*uriPtr] != nil {
+			return nil, nil, fmt.Errorf("resource %s is already registered", uri)
 		}
 
 		registeredResource := RegisteredResource{
-			name:         *name,
+			name:         name,
 			metadata:     metadata,
 			readCallback: readResourceCallBack,
 			enabled:      true,
 			Disable: func() {
-				if _, ok := m.registeredResources[*uri]; !ok {
+				if _, ok := m.registeredResources[*uriPtr]; !ok {
 					fmt.Println("resource not found")
 					return
 				}
 				disabled := false
-				m.registeredResources[*uri].Update(ResourceUpdates{Enabled: &disabled})
+				m.registeredResources[*uriPtr].Update(ResourceUpdates{Enabled: &disabled})
 			},
 			Enable: func() {
-				if _, ok := m.registeredResources[*uri]; !ok {
+				if _, ok := m.registeredResources[*uriPtr]; !ok {
 					fmt.Println("resource not found")
 					return
 				}
 				enabled := true
-				m.registeredResources[*uri].Update(ResourceUpdates{Enabled: &enabled})
+				m.registeredResources[*uriPtr].Update(ResourceUpdates{Enabled: &enabled})
 			},
-			Remove: func() { delete(m.registeredResources, *uri) },
+			Remove: func() { delete(m.registeredResources, *uriPtr) },
 			Update: func(updates ResourceUpdates) {
-				if _, ok := m.registeredResources[*uri]; !ok {
+				if _, ok := m.registeredResources[*uriPtr]; !ok {
 					fmt.Println("resource not found")
 					return
 				}
-				if updates.Uri != nil && *updates.Uri != *uri {
-					resourceCopy := m.registeredResources[*uri]
-					delete(m.registeredResources, *uri)
-					m.registeredResources[*updates.Uri] = resourceCopy
+				if updates.Uri != "" && updates.Uri != *uriPtr {
+					resourceCopy := m.registeredResources[*uriPtr]
+					delete(m.registeredResources, *uriPtr)
+					m.registeredResources[updates.Uri] = resourceCopy
 
-					// 参照を更新することで、uriの値が変わった場合でも、以降の処理 & Disable/Enable/Removeが正しく動作するようにする
-					uri = updates.Uri
+					// 参照する値を更新することで、uriの値が変わった場合でも、以降の処理 & Disable/Enable/Removeが正しく動作するようにする
+					*uriPtr = updates.Uri
 				}
-				if updates.Name != nil {
-					m.registeredResources[*uri].name = *updates.Name
+				if updates.Name != "" {
+					m.registeredResources[*uriPtr].name = updates.Name
 				}
 				if updates.Metadata != nil {
-					m.registeredResources[*uri].metadata = updates.Metadata
+					m.registeredResources[*uriPtr].metadata = updates.Metadata
 				}
 				if updates.Callback != nil {
-					m.registeredResources[*uri].readCallback = *updates.Callback
+					m.registeredResources[*uriPtr].readCallback = *updates.Callback
 				}
 				if updates.Enabled != nil {
-					m.registeredResources[*uri].enabled = *updates.Enabled
+					m.registeredResources[*uriPtr].enabled = *updates.Enabled
 				}
 				m.server.SendResourceListChanged()
 			},
 		}
-		m.registeredResources[*uri] = &registeredResource
+		m.registeredResources[*uriPtr] = &registeredResource
 		m.setResourceRequestHandlers()
 		m.sendResourceListChanged()
 		return &registeredResource, nil, nil
 	}
 	// templateが渡された場合
 	if template != nil {
-		if m.registeredResourceTemplates[*name] != nil {
-			return nil, nil, fmt.Errorf("resource template %s is already registered", *name)
+		namePtr := &name
+		if m.registeredResourceTemplates[*namePtr] != nil {
+			return nil, nil, fmt.Errorf("resource template %s is already registered", name)
 		}
 		if readResourceTemplateCallBack == nil {
 			return nil, nil, errors.New("readResourceTemplateCallBack is required when template is provided")
@@ -130,51 +132,51 @@ func (m *McpServer) Resource(
 			readCallback:     readResourceTemplateCallBack,
 			enabled:          true,
 			Disable: func() {
-				if _, ok := m.registeredResourceTemplates[*name]; !ok {
+				if _, ok := m.registeredResourceTemplates[*namePtr]; !ok {
 					fmt.Println("resource template not found")
 					return
 				}
 				disabled := false
-				m.registeredResourceTemplates[*name].Update(ResourceTemplateUpdates{Enabled: &disabled})
+				m.registeredResourceTemplates[*namePtr].Update(ResourceTemplateUpdates{Enabled: &disabled})
 			},
 			Enable: func() {
-				if _, ok := m.registeredResourceTemplates[*name]; !ok {
-					fmt.Println("resource not found")
+				if _, ok := m.registeredResourceTemplates[*namePtr]; !ok {
+					fmt.Println("resource template not found")
 					return
 				}
 				enabled := true
-				m.registeredResourceTemplates[*name].Update(ResourceTemplateUpdates{Enabled: &enabled})
+				m.registeredResourceTemplates[*namePtr].Update(ResourceTemplateUpdates{Enabled: &enabled})
 			},
-			Remove: func() { delete(m.registeredResourceTemplates, *name) },
+			Remove: func() { delete(m.registeredResourceTemplates, *namePtr) },
 			Update: func(updates ResourceTemplateUpdates) {
-				if _, ok := m.registeredResourceTemplates[*name]; !ok {
-					fmt.Println("resource not found")
+				if _, ok := m.registeredResourceTemplates[*namePtr]; !ok {
+					fmt.Println("resource template not found")
 					return
 				}
-				if updates.Name != nil && *updates.Name != *name {
-					resourceTemplateCopy := m.registeredResourceTemplates[*name]
-					delete(m.registeredResourceTemplates, *name)
-					m.registeredResourceTemplates[*updates.Name] = resourceTemplateCopy
+				if updates.Name != "" && updates.Name != *namePtr {
+					resourceTemplateCopy := m.registeredResourceTemplates[*namePtr]
+					delete(m.registeredResourceTemplates, *namePtr)
+					m.registeredResourceTemplates[updates.Name] = resourceTemplateCopy
 
-					// 参照を更新することで、nameの値が変わった場合でも、以降の処理 & Disable/Enable/Removeが正しく動作するようにする
-					name = updates.Name
+					// 参照する値を更新することで、nameの値が変わった場合でも、以降の処理 & Disable/Enable/Removeが正しく動作するようにする
+					*namePtr = updates.Name
 				}
 				if updates.Template != nil {
-					m.registeredResourceTemplates[*name].resourceTemplate = updates.Template
+					m.registeredResourceTemplates[*namePtr].resourceTemplate = updates.Template
 				}
 				if updates.Metadata != nil {
-					m.registeredResourceTemplates[*name].metadata = updates.Metadata
+					m.registeredResourceTemplates[*namePtr].metadata = updates.Metadata
 				}
 				if updates.Callback != nil {
-					m.registeredResourceTemplates[*name].readCallback = *updates.Callback
+					m.registeredResourceTemplates[*namePtr].readCallback = *updates.Callback
 				}
 				if updates.Enabled != nil {
-					m.registeredResourceTemplates[*name].enabled = *updates.Enabled
+					m.registeredResourceTemplates[*namePtr].enabled = *updates.Enabled
 				}
 				m.server.SendResourceListChanged()
 			},
 		}
-		m.registeredResourceTemplates[*name] = &registeredResourceTemplate
+		m.registeredResourceTemplates[*namePtr] = &registeredResourceTemplate
 		m.setResourceRequestHandlers()
 		m.sendResourceListChanged()
 		return nil, &registeredResourceTemplate, nil

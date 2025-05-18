@@ -17,8 +17,8 @@ type RegisteredResource struct {
 	Remove       func()
 }
 type ResourceUpdates struct {
-	Name     *string
-	Uri      *string
+	Name     string
+	Uri      string
 	Metadata *schema.ResourceMetadata
 	Callback *ReadResourceCallback[schema.ResourceContentSchema]
 	Enabled  *bool
@@ -38,11 +38,11 @@ type RegisteredResourceTemplate struct {
 }
 
 type ResourceTemplateUpdates struct {
-	Name     *string
+	Name     string
 	Template *ResourceTemplate
 	Metadata *schema.ResourceMetadata
 	Callback *ReadResourceTemplateCallback[schema.ResourceContentSchema]
 	Enabled  *bool
 }
 
-type ReadResourceTemplateCallback[T schema.ResourceContentSchema] func(url url.URL, variables map[string]any) schema.ReadResourceResultSchema[T]
+type ReadResourceTemplateCallback[T schema.ResourceContentSchema] func(url url.URL, variables map[string]any) (schema.ReadResourceResultSchema[T], error)

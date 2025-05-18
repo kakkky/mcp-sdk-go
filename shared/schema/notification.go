@@ -29,7 +29,7 @@ type LoggingMessageNotificationSchema struct {
 
 type LoggingMessageNotificationParams struct {
 	Level  LoggingLevelSchema `json:"level"`
-	Logger *string            `json:"logger,omitempty"`
+	Logger string             `json:"logger,omitempty"`
 	Data   any                `json:"data"`
 }
 

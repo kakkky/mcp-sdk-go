@@ -33,5 +33,5 @@ type ModelPreferencesSchema struct {
 	IntelligencePriority *int                `json:"intelligencePriority,omitempty"` // 0 <= intelligencePriority <= 1
 }
 type ModelHintsSchema struct {
-	Name *string `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 }

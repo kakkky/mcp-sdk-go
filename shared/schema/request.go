@@ -43,11 +43,11 @@ type CreateMessageRequestSchema[T ContentSchema] struct {
 
 type CreateMessageRequestParams[T ContentSchema] struct {
 	Messages        []SamplingMessageSchema[T] `json:"messages"`
-	SystemPrompt    *string                    `json:"systemPrompt,omitempty"`
-	IncludeContext  *string                    `json:"includeContext,omitempty"` // none or  thisServer or  allServer
-	Temperature     *int                       `json:"temperature,omitempty"`
+	SystemPrompt    string                     `json:"systemPrompt,omitempty"`
+	IncludeContext  string                     `json:"includeContext,omitempty"` // none or  thisServer or  allServer
+	Temperature     int                        `json:"temperature,omitempty"`
 	MaxTokens       int                        `json:"maxTokens"`
-	StopSequences   []*string                  `json:"stopSequences,omitempty"`
+	StopSequences   []string                   `json:"stopSequences,omitempty"`
 	Metadata        any                        `json:"metadata,omitempty"`
 	ModelPreference *ModelPreferencesSchema    `json:"modelPreference,omitempty"`
 }

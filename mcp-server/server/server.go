@@ -19,7 +19,7 @@ type Server struct {
 	clientCapabilities schema.ClientCapabilities
 	clientVersion      schema.Implementation
 	capabilities       schema.ServerCapabilities
-	instructions       *string
+	instructions       string
 	serverInfo         schema.Implementation
 	Protocol
 
@@ -32,11 +32,11 @@ func NewServer(serverInfo schema.Implementation, options *ServerOptions) *Server
 	}
 	if options == nil {
 		s.capabilities = schema.ServerCapabilities{}
-		s.instructions = nil
+		s.instructions = ""
 		s.Protocol = protocol.NewProtocol(nil)
 	} else {
 		s.capabilities = options.Capabilities
-		s.instructions = &options.Instructions
+		s.instructions = options.Instructions
 		s.Protocol = protocol.NewProtocol(&options.ProtocolOptions)
 	}
 	// 初期化時のやり取りを行うためのハンドラをセット

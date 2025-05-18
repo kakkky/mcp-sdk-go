@@ -7,8 +7,8 @@ type ResourceSchema struct {
 }
 
 type ResourceMetadata struct {
-	Description *string `json:"description,omitempty"`
-	MimeType    *string `json:"mimeType,omitempty"`
+	Description string `json:"description,omitempty"`
+	MimeType    string `json:"mimeType,omitempty"`
 }
 
 type ResourceContentSchema interface {
