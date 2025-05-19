@@ -127,6 +127,47 @@ func TestUnmarshal(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "normal : able to unmarshal initialize response",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 5,
+				"result": {
+					"protocolVersion": "2025-01-01",
+					"capabilities": {
+						"resources": {
+							"listChanged": true
+						},
+						"logging": {}
+					},
+					"serverInfo": {
+						"name": "test-server",
+						"version": "1.0.0"
+					},
+					"instructions": "Welcome to the test server"
+				}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      5,
+				},
+				Result: &schema.InitializeResultSchema{
+					ProtocolVersion: "2025-01-01",
+					Capabilities: schema.ServerCapabilities{
+						Resources: &schema.Resources{
+							ListChanged: true,
+						},
+						Logging: &schema.Logging{},
+					},
+					ServerInfo: schema.Implementation{
+						Name:    "test-server",
+						Version: "1.0.0",
+					},
+					Instructions: "Welcome to the test server",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
