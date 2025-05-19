@@ -26,7 +26,7 @@ type Tools struct {
 // Client
 type ClientCapabilities struct {
 	Experimental any `json:"experimental,omitempty"`
-	*Sampling    `json:"sampling"`
+	*Sampling    `json:"sampling,omitempty"`
 	*Roots       `json:"roots,omitempty"`
 }
 
