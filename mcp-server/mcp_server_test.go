@@ -40,8 +40,8 @@ func TestMcpServer_Resource(t *testing.T) {
 					Description: "test description",
 					MimeType:    "text/plain",
 				},
-				readResourceCallBack: func(url url.URL) (schema.ReadResourceResultSchema[schema.ResourceContentSchema], error) {
-					return schema.ReadResourceResultSchema[schema.ResourceContentSchema]{
+				readResourceCallBack: func(url url.URL) (schema.ReadResourceResultSchema, error) {
+					return schema.ReadResourceResultSchema{
 						Contents: []schema.ResourceContentSchema{
 							&schema.TextResourceContentsSchema{
 								UriData:      "file:///test.txt",
@@ -78,9 +78,9 @@ func TestMcpServer_Resource(t *testing.T) {
 					MimeType:    "application/json",
 				},
 				readResourceCallBack: nil,
-				readResourceTemplateCallBack: func(url url.URL, vars map[string]any) (schema.ReadResourceResultSchema[schema.ResourceContentSchema], error) {
+				readResourceTemplateCallBack: func(url url.URL, vars map[string]any) (schema.ReadResourceResultSchema, error) {
 					userId, _ := vars["userId"].(string)
-					return schema.ReadResourceResultSchema[schema.ResourceContentSchema]{
+					return schema.ReadResourceResultSchema{
 						Contents: []schema.ResourceContentSchema{
 							&schema.TextResourceContentsSchema{
 								UriData:      url.String(),
@@ -119,11 +119,11 @@ func TestMcpServer_Resource(t *testing.T) {
 					Description: "Invalid resource",
 					MimeType:    "text/plain",
 				},
-				readResourceCallBack: func(url url.URL) (schema.ReadResourceResultSchema[schema.ResourceContentSchema], error) {
-					return schema.ReadResourceResultSchema[schema.ResourceContentSchema]{}, nil
+				readResourceCallBack: func(url url.URL) (schema.ReadResourceResultSchema, error) {
+					return schema.ReadResourceResultSchema{}, nil
 				},
-				readResourceTemplateCallBack: func(url url.URL, vars map[string]any) (schema.ReadResourceResultSchema[schema.ResourceContentSchema], error) {
-					return schema.ReadResourceResultSchema[schema.ResourceContentSchema]{}, nil
+				readResourceTemplateCallBack: func(url url.URL, vars map[string]any) (schema.ReadResourceResultSchema, error) {
+					return schema.ReadResourceResultSchema{}, nil
 				},
 			},
 			expectedResource:         nil,

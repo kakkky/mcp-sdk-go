@@ -40,11 +40,11 @@ func (r *ListRootResultSchema) Result() any {
 	return r
 }
 
-type ReadResourceResultSchema[T ResourceContentSchema] struct {
-	Contents []T `json:"contents"`
+type ReadResourceResultSchema struct {
+	Contents []ResourceContentSchema `json:"contents"`
 }
 
-func (r *ReadResourceResultSchema[T]) Result() any {
+func (r *ReadResourceResultSchema) Result() any {
 	return r
 }
 

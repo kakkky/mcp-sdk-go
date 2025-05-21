@@ -24,7 +24,7 @@ type ResourceUpdates struct {
 	Enabled  *bool
 }
 
-type ReadResourceCallback[T schema.ResourceContentSchema] func(url url.URL) (schema.ReadResourceResultSchema[T], error)
+type ReadResourceCallback[T schema.ResourceContentSchema] func(url url.URL) (schema.ReadResourceResultSchema, error)
 
 type RegisteredResourceTemplate struct {
 	resourceTemplate *ResourceTemplate
@@ -45,4 +45,4 @@ type ResourceTemplateUpdates struct {
 	Enabled  *bool
 }
 
-type ReadResourceTemplateCallback[T schema.ResourceContentSchema] func(url url.URL, variables map[string]any) (schema.ReadResourceResultSchema[T], error)
+type ReadResourceTemplateCallback[T schema.ResourceContentSchema] func(url url.URL, variables map[string]any) (schema.ReadResourceResultSchema, error)
