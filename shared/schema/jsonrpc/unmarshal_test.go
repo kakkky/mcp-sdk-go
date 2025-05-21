@@ -1,4 +1,4 @@
-package json
+package jsonrpc
 
 import (
 	"testing"
@@ -165,6 +165,280 @@ func TestUnmarshal(t *testing.T) {
 						Version: "1.0.0",
 					},
 					Instructions: "Welcome to the test server",
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal sampling/createMessage response",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 6,
+				"result": {
+					"model": "gpt-4",
+					"role": "assistant",
+					"stopReason": "endTurn", 
+					"content": {
+						"type": "text",
+						"text": "Hello! How can I assist you today?"
+					}
+				}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      6,
+				},
+				Result: &schema.CreateMessageResultSchema[schema.TextContentSchema]{
+					Model:      "gpt-4",
+					Role:       "assistant",
+					StopReason: "endTurn",
+					Content: schema.TextContentSchema{
+						Type: "text",
+						Text: "Hello! How can I assist you today?",
+					},
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal resources/read response with blob & text contents",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 8,
+				"result": {
+					"contents": [
+						{
+							"uri": "file:///example.jpg",
+							"mimeType": "image/jpeg",
+							"blob": "base64encodeddata"
+						},
+						{
+							"uri": "file:///example.txt",
+							"mimeType": "text/plain",
+							"text": "This is the content of example.txt"
+						}
+					]
+				}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      8,
+				},
+				Result: &schema.ReadResourceResultSchema{
+					Contents: []schema.ResourceContentSchema{
+						&schema.BlobResourceContentsSchema{
+							UriData:      "file:///example.jpg",
+							MimeTypeData: "image/jpeg",
+							ContentData:  "base64encodeddata",
+						},
+						&schema.TextResourceContentsSchema{
+							UriData:      "file:///example.txt",
+							MimeTypeData: "text/plain",
+							ContentData:  "This is the content of example.txt",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal resources/list response",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 9,
+				"result": {
+					"resources": [
+						{
+							"uri": "file:///example.txt",
+							"name": "Example Text",
+							"description": "An example text file",
+							"mimeType": "text/plain"
+						},
+						{
+							"uri": "file:///image.jpg",
+							"name": "Example Image",
+							"mimeType": "image/jpeg"
+						}
+					]
+				}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      9,
+				},
+				Result: &schema.ListResourcesResultSchema{
+					Resources: []schema.ResourceSchema{
+						{
+							Uri:  "file:///example.txt",
+							Name: "Example Text",
+							ResourceMetadata: &schema.ResourceMetadata{
+								Description: "An example text file",
+								MimeType:    "text/plain",
+							},
+						},
+						{
+							Uri:  "file:///image.jpg",
+							Name: "Example Image",
+							ResourceMetadata: &schema.ResourceMetadata{
+								MimeType: "image/jpeg",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal resources/templates/list response",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 10,
+				"result": {
+					"resourceTemplates": [
+						{
+							"uriTemplate": "file:///{filename}.txt",
+							"name": "Text Template",
+							"description": "Template for text files",
+							"mimeType": "text/plain"
+						},
+						{
+							"uriTemplate": "file:///{filename}.md",
+							"name": "Markdown Template",
+							"mimeType": "text/markdown"
+						}
+					]
+				}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      10,
+				},
+				Result: &schema.ListResourceTemplatesResultSchema{
+					ResourceTemplates: []schema.ResourceTemplateSchema{
+						{
+							UriTemplate: "file:///{filename}.txt",
+							Name:        "Text Template",
+							ResourceMetadata: &schema.ResourceMetadata{
+								Description: "Template for text files",
+								MimeType:    "text/plain",
+							},
+						},
+						{
+							UriTemplate: "file:///{filename}.md",
+							Name:        "Markdown Template",
+							ResourceMetadata: &schema.ResourceMetadata{
+								MimeType: "text/markdown",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal completion/complete response",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 11,
+				"result": {
+					"completion": {
+						"values": ["js", "python", "go"],
+						"total": 3,
+						"hasMore": false
+					}
+				}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      11,
+				},
+				Result: &schema.CompleteResultSchema{
+					Completion: schema.CompletionSchema{
+						Values:  []string{"js", "python", "go"},
+						Total:   3,
+						HasMore: func() *bool { b := false; return &b }(), // booleanをポインタで渡すため
+					},
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal empty result response",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 12,
+				"result": {}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      12,
+				},
+				Result: &schema.EmptyResultSchema{},
+			},
+		},
+		{
+			name: "normal : able to unmarshal sampling/createMessage response with image content",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 13,
+				"result": {
+					"model": "dall-e-3",
+					"role": "assistant",
+					"stopReason": "complete", 
+					"content": {
+						"type": "image",
+						"mimeType": "image/png",
+						"data": "base64encodedimagedata"
+					}
+				}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      13,
+				},
+				Result: &schema.CreateMessageResultSchema[schema.ImageContentSchema]{
+					Model:      "dall-e-3",
+					Role:       "assistant",
+					StopReason: "complete",
+					Content: schema.ImageContentSchema{
+						Type:     "image",
+						MimeType: "image/png",
+						Data:     "base64encodedimagedata",
+					},
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal sampling/createMessage response with audio content",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 14,
+				"result": {
+					"model": "whisper",
+					"role": "assistant",
+					"stopReason": "complete", 
+					"content": {
+						"type": "audio",
+						"mimeType": "audio/mp3",
+						"data": "base64encodedaudiodata"
+					}
+				}
+			}`,
+			expected: schema.JsonRpcResponse{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      14,
+				},
+				Result: &schema.CreateMessageResultSchema[schema.AudioContentSchema]{
+					Model:      "whisper",
+					Role:       "assistant",
+					StopReason: "complete",
+					Content: schema.AudioContentSchema{
+						Type:     "audio",
+						MimeType: "audio/mp3",
+						Data:     "base64encodedaudiodata",
+					},
 				},
 			},
 		},
