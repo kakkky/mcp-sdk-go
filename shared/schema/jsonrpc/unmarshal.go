@@ -2,7 +2,6 @@ package jsonrpc
 
 import (
 	"encoding/json"
-	"fmt"
 
 	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
@@ -80,5 +79,4 @@ func Unmarshal(jsonData []byte) (schema.JsonRpcMessage, error) {
 			Result: result,
 		}, nil
 	}
-	return nil, fmt.Errorf("unknown message: %v", message)
 }
