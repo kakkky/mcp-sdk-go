@@ -37,7 +37,7 @@ func createCompletionResult(suggestions []string) *schema.CompleteResultSchema {
 	return &schema.CompleteResultSchema{
 		Completion: schema.CompletionSchema{
 			Values:  suggestions,
-			Total:   &suggestLengh,
+			Total:   suggestLengh,
 			HasMore: &isHasMore,
 		},
 	}
@@ -49,7 +49,7 @@ func EmptyCompletionResult() *schema.CompleteResultSchema {
 	return &schema.CompleteResultSchema{
 		Completion: schema.CompletionSchema{
 			Values:  []string{},
-			Total:   nil,
+			Total:   0,
 			HasMore: &notHasMore,
 		},
 	}

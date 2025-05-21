@@ -37,6 +37,6 @@ type CompleteRequestParamsArg struct {
 
 type CompletionSchema struct {
 	Values  []string `json:"values"`
-	Total   *int     `json:"total"`
-	HasMore *bool    `json:"hasMore"`
+	Total   int      `json:"total,omitempty"`
+	HasMore *bool    `json:"hasMore,omitempty"`
 }
