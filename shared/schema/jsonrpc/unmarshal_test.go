@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
@@ -507,6 +508,56 @@ func TestUnmarshal(t *testing.T) {
 				Jsonrpc: schema.JSON_RPC_VERSION,
 				Notification: &schema.ResourceListChangedNotificationSchema{
 					MethodName: "notifications/resources/list_changed",
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal error response with simple error message",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"id": 100,
+				"error": {
+					"code": -32602,
+					"message": "Invalid params"
+				}
+			}`,
+			expected: schema.JsonRpcError{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      100,
+				},
+				Error: schema.Error{
+					Code:    mcperr.INVALID_PARAMS,
+					Message: "Invalid params",
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal error response with detailed error data",
+			jsonStr: `{
+				"jsonrpc": "2.0", 
+				"id": 101,
+				"error": {
+					"code": -32601,
+					"message": "Method not found",
+					"data": {
+						"details": "The requested method 'unknown_method' is not supported",
+						"requestId": "req-123456"
+					}
+				}
+			}`,
+			expected: schema.JsonRpcError{
+				BaseMessage: schema.BaseMessage{
+					Jsonrpc: schema.JSON_RPC_VERSION,
+					Id:      101,
+				},
+				Error: schema.Error{
+					Code:    mcperr.METHOD_NOT_FOUND,
+					Message: "Method not found",
+					Data: map[string]interface{}{
+						"details":   "The requested method 'unknown_method' is not supported",
+						"requestId": "req-123456",
+					},
 				},
 			},
 		},

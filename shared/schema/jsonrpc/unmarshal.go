@@ -55,7 +55,17 @@ func Unmarshal(jsonData []byte) (schema.JsonRpcMessage, error) {
 		}, nil
 	// Error
 	case message.Error != nil:
-
+		errorData, err := unmarshalError(message)
+		if err != nil {
+			return nil, err
+		}
+		return schema.JsonRpcError{
+			BaseMessage: schema.BaseMessage{
+				Jsonrpc: message.Jsonrpc,
+				Id:      message.Id,
+			},
+			Error: *errorData,
+		}, nil
 	// Response
 	default:
 		result, err := unmarshalResult(message)
