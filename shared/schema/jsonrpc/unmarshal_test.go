@@ -442,6 +442,74 @@ func TestUnmarshal(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "normal : able to unmarshal initialized notification",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"method": "notifications/initialized"
+			}`,
+			expected: schema.JsonRpcNotification{
+				Jsonrpc: schema.JSON_RPC_VERSION,
+				Notification: &schema.InitializeNotificationSchema{
+					MethodName: "notifications/initialized",
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal logging message notification",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"method": "notifications/message",
+				"params": {
+					"level": "info",
+					"logger": "",
+					"data": "This is an informational message"
+				}
+			}`,
+			expected: schema.JsonRpcNotification{
+				Jsonrpc: schema.JSON_RPC_VERSION,
+				Notification: &schema.LoggingMessageNotificationSchema{
+					MethodName: "notifications/message",
+					ParamsData: schema.LoggingMessageNotificationParams{
+						Level:  "info",
+						Logger: "",
+						Data:   "This is an informational message",
+					},
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal resources updated notification",
+			jsonStr: `{
+				"jsonrpc": "2.0",
+				"method": "notifications/resources/updated",
+				"params": {
+					"uri": "file:///example.txt"
+				}
+			}`,
+			expected: schema.JsonRpcNotification{
+				Jsonrpc: schema.JSON_RPC_VERSION,
+				Notification: &schema.ResourceUpdatedNotificationSchema{
+					MethodName: "notifications/resources/updated",
+					ParamsData: schema.ResourceUpdatedNotificationParams{
+						Uri: "file:///example.txt",
+					},
+				},
+			},
+		},
+		{
+			name: "normal : able to unmarshal resources list changed notification",
+			jsonStr: `{
+				"jsonrpc": "2.0", 
+				"method": "notifications/resources/list_changed"
+			}`,
+			expected: schema.JsonRpcNotification{
+				Jsonrpc: schema.JSON_RPC_VERSION,
+				Notification: &schema.ResourceListChangedNotificationSchema{
+					MethodName: "notifications/resources/list_changed",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
