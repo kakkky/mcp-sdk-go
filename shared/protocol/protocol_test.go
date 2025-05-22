@@ -13,8 +13,8 @@ import (
 func TestProtocol_Connect(t *testing.T) {
 	// モックの Transport を作成
 	transport := mock.NewMockChannelServerTransport(
-		make(chan schema.JsonRpcMessage, 1),
-		make(chan schema.JsonRpcMessage, 1),
+		make(chan []byte, 1),
+		make(chan []byte, 1),
 	)
 
 	// Protocol インスタンスを作成
@@ -45,30 +45,58 @@ func TestProtocol_Request(t *testing.T) {
 		{
 			name: "nomal case :client send request and receive response successfully",
 			setHandler: func(p *Protocol) {
-				p.SetRequestHandler(&mock.TestRequestSchema{MethodName: "test"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
-					return &mock.TestResultShema{
-						Status: "success",
+				p.SetRequestHandler(&schema.InitializeRequestSchema{MethodName: "initialize"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+					return &schema.InitializeResultSchema{
+						ServerInfo: schema.Implementation{
+							Name:    "test-server",
+							Version: "1.0.0",
+						},
+						Capabilities: schema.ServerCapabilities{
+							Tools: &schema.Tools{
+								ListChanged: true,
+							},
+						},
 					}, nil
 				})
 			},
-			request:      &mock.TestRequestSchema{MethodName: "test"},
-			resultSchema: &mock.TestResultShema{},
-			expectedResult: &mock.TestResultShema{
-				Status: "success",
+			request: &schema.InitializeRequestSchema{
+				MethodName: "initialize",
+				ParamsData: schema.InitializeRequestParams{
+					ProtocolVersion: "2025-01-01",
+					Capabilities: schema.ClientCapabilities{
+						Sampling: &schema.Sampling{},
+					},
+					ClientInfo: schema.Implementation{
+						Name:    "test-client",
+						Version: "1.0.0",
+					},
+				},
+			},
+			resultSchema: &schema.InitializeResultSchema{},
+			expectedResult: &schema.InitializeResultSchema{
+				ServerInfo: schema.Implementation{
+					Name:    "test-server",
+					Version: "1.0.0",
+				},
+				Capabilities: schema.ServerCapabilities{
+					Tools: &schema.Tools{
+						ListChanged: true,
+					},
+				},
 			},
 			isExpectedMcpErr: false,
 		},
 		{
-			name:             "sminormal case :client send unknown request and receive 'method not found' error",
-			request:          &mock.TestRequestSchema{MethodName: "unknown"},
+			name:             "semi normal case :client send unknown request and receive 'method not found' error",
+			request:          &schema.ListResourceRequestSchema{MethodName: "resources/list"},
 			expectedErrCode:  mcperr.METHOD_NOT_FOUND,
 			isExpectedMcpErr: true,
 		},
 		{
-			name:    "sminormal case :client send unknown request and receive something error (not mcpErr)",
-			request: &mock.TestRequestSchema{MethodName: "error"},
+			name:    "semi normal case :client send request and receive something error (not mcpErr)",
+			request: &schema.PingRequestSchema{MethodName: "ping"},
 			setHandler: func(p *Protocol) {
-				p.SetRequestHandler(&mock.TestRequestSchema{MethodName: "error"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
+				p.SetRequestHandler(&schema.PingRequestSchema{MethodName: "ping"}, func(request schema.JsonRpcRequest) (schema.Result, error) {
 					return nil, errors.New("some error")
 				})
 			},
@@ -85,8 +113,8 @@ func TestProtocol_Request(t *testing.T) {
 			client := NewProtocol(nil)
 
 			// トランスポートのモックを作成
-			serverToClientCh := make(chan schema.JsonRpcMessage, 1)
-			clientToServerCh := make(chan schema.JsonRpcMessage, 1)
+			serverToClientCh := make(chan []byte, 1)
+			clientToServerCh := make(chan []byte, 1)
 
 			// トランスポートを初期化
 			serverTransport := mock.NewMockChannelServerTransport(clientToServerCh, serverToClientCh)
@@ -160,8 +188,8 @@ func TestProtocol_Notificate(t *testing.T) {
 	}{
 		{
 			name: "normal case :client send notification successfully",
-			notification: &mock.TestNotificationSchema{
-				MethodName: "test",
+			notification: &schema.InitializeNotificationSchema{
+				MethodName: "notifications/initialize",
 			},
 		},
 	}
@@ -172,8 +200,8 @@ func TestProtocol_Notificate(t *testing.T) {
 			client := NewProtocol(nil)
 
 			// トランスポートのモックを作成
-			serverToClientCh := make(chan schema.JsonRpcMessage, 1)
-			clientToServerCh := make(chan schema.JsonRpcMessage, 1)
+			serverToClientCh := make(chan []byte, 1)
+			clientToServerCh := make(chan []byte, 1)
 
 			// トランスポートを初期化
 			serverTransport := mock.NewMockChannelServerTransport(clientToServerCh, serverToClientCh)
@@ -226,8 +254,8 @@ func TestProtocol_Close(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			protocol := NewProtocol(nil)
 			serverTransport := mock.NewMockChannelServerTransport(
-				make(chan schema.JsonRpcMessage, 1),
-				make(chan schema.JsonRpcMessage, 1),
+				make(chan []byte, 1),
+				make(chan []byte, 1),
 			)
 			protocol.SetOnClose(tt.onClose)
 			protocol.Connect(serverTransport)

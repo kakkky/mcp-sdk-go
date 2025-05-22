@@ -5,18 +5,19 @@ import (
 	"fmt"
 
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
+	"github.com/kakkky/mcp-sdk-go/shared/schema/jsonrpc"
 )
 
 type MockChannelServerTransport struct {
-	clientToServerCh chan schema.JsonRpcMessage
-	serverToClientCh chan schema.JsonRpcMessage
+	clientToServerCh chan []byte
+	serverToClientCh chan []byte
 	cancel           context.CancelFunc // Close時にgoroutineを終了するためのcancel関数
 	onReceiveMessage func(schema.JsonRpcMessage)
 	onClose          func()
 	onError          func(error)
 }
 
-func NewMockChannelServerTransport(clientToServerCh chan schema.JsonRpcMessage, serverToClientCh chan schema.JsonRpcMessage) *MockChannelServerTransport {
+func NewMockChannelServerTransport(clientToServerCh chan []byte, serverToClientCh chan []byte) *MockChannelServerTransport {
 	return &MockChannelServerTransport{
 		clientToServerCh: clientToServerCh,
 		serverToClientCh: serverToClientCh,
@@ -35,7 +36,12 @@ func (m *MockChannelServerTransport) Start() error {
 				if !ok {
 					return
 				}
-				m.onReceiveMessage(message)
+				msg, err := jsonrpc.Unmarshal(message)
+				if err != nil {
+					m.onError(err)
+					continue
+				}
+				m.onReceiveMessage(msg)
 			}
 		}
 	}()
@@ -54,7 +60,12 @@ func (m *MockChannelServerTransport) Close() error {
 }
 
 func (m *MockChannelServerTransport) SendMessage(message schema.JsonRpcMessage) error {
-	m.serverToClientCh <- message
+	msg, err := jsonrpc.Marshal(message)
+	if err != nil {
+		fmt.Println("Error marshalling message:", err)
+		return err
+	}
+	m.serverToClientCh <- msg
 	return nil
 }
 
