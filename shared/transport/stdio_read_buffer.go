@@ -2,6 +2,7 @@ package transport
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 	"github.com/kakkky/mcp-sdk-go/shared/schema/jsonrpc"
@@ -19,13 +20,13 @@ func NewReadBuffer() *ReadBuffer {
 	}
 }
 
-// Append adds a chunk of data to the buffer.
+// バッファにチャンクを追加する
 func (r *ReadBuffer) Append(chunk []byte) error {
 	_, err := r.buffer.Write(chunk)
 	return err
 }
 
-// ReadMessage tries to read a complete JSON-RPC message from the buffer.
+// バッファから一行分メッセージを読み取る
 func (r *ReadBuffer) ReadMessage() (schema.JsonRpcMessage, error) {
 	// バッファが空の場合
 	if r.buffer.Len() == 0 {
@@ -42,12 +43,14 @@ func (r *ReadBuffer) ReadMessage() (schema.JsonRpcMessage, error) {
 	}
 
 	// 改行までの部分を取り出す
+	// JSONRPCメッセージは改行ごとに区切られている
+	// 参照：(https://modelcontextprotocol.io/specification/draft/basic/transports#stdio)
 	line := make([]byte, index)
 	copy(line, data[:index])
 
-	// CRがあれば削除
-	if len(line) > 0 && line[len(line)-1] == '\r' {
-		line = line[:len(line)-1]
+	// CRLFを考慮（Windowsの場合）
+	if strings.HasSuffix(string(line), "\r") {
+		line = line[:len(line)-1] // CRを削除
 	}
 
 	// バッファを更新（読み取った部分を削除）
@@ -62,7 +65,7 @@ func (r *ReadBuffer) ReadMessage() (schema.JsonRpcMessage, error) {
 	return message, nil
 }
 
-// Clear empties the buffer.
+// バッファをクリアする
 func (r *ReadBuffer) Clear() {
 	r.buffer.Reset()
 }
