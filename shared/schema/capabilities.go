@@ -3,7 +3,7 @@ package schema
 // Server
 type ServerCapabilities struct {
 	Experimental any `json:"experimental,omitempty"`
-	*Logging     `json:"logging"`
+	*Logging     `json:"logging,omitempty"`
 	*Prompts     `json:"prompts,omitempty"`
 	*Resources   `json:"resources,omitempty"`
 	*Tools       `json:"tools,omitempty"`

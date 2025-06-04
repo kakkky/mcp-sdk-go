@@ -38,7 +38,6 @@ func NewProtocol(options *ProtocolOptions) *Protocol {
 		respCh:    make(chan schema.Result, 1),
 		errRespCh: make(chan error, 1),
 	}
-	p.onError = func(err error) {}
 	p.onClose = func() {
 		responseHandlers := p.handlers.responseHandlers
 		for _, handler := range responseHandlers {
@@ -71,7 +70,6 @@ func (p *Protocol) SetOnError(onError func(error)) {
 func (p *Protocol) Connect(transport Transport) error {
 	p.transport = transport
 	p.transport.SetOnClose(p.onClose)
-
 	p.transport.SetOnError(p.onError)
 	p.transport.SetOnReceiveMessage(p.onReceiveMessage)
 	if err := p.transport.Start(); err != nil {
