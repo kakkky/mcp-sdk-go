@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
 
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 	"github.com/kakkky/mcp-sdk-go/shared/schema/jsonrpc"
@@ -29,6 +30,8 @@ func NewStdioServerTransport() *stdioServerTransport {
 	}
 }
 func (s *stdioServerTransport) Start() error {
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
 	if s.isStarted {
 		return errors.New("stdio server transport is already started. If using Server class, note that connect() calls start() automatically")
 	}
@@ -37,6 +40,7 @@ func (s *stdioServerTransport) Start() error {
 		s.stdinOnData()
 		s.stdinOnError()
 	}()
+	<-sig
 	return nil
 }
 
@@ -94,10 +98,12 @@ func (s *stdioServerTransport) SetOnError(onError func(error)) {
 
 // 標準入力でデータを\nごとに受け取り、onDataコールバックを呼び出す
 func (s *stdioServerTransport) stdinOnData() {
+	// 標準入力のスキャナーを使用して、データを読み取る
 	for s.stdScanner.Scan() {
 		data := s.stdScanner.Text()
-		if err := s.onData([]byte(data)); err != nil {
-			s.onError(fmt.Errorf("failed to read data from stdin: %w", err))
+		// Scannerは改行を含まないので、改行を追加して
+		if err := s.onData([]byte(data + "\n")); err != nil {
+			s.OnError(fmt.Errorf("failed to read data from stdin: %w", err))
 			return
 		}
 	}
@@ -119,14 +125,12 @@ func (s *stdioServerTransport) onData(chunk []byte) error {
 
 // バッファからメッセージを読み取り、onReceiveMessageコールバックを呼び出す
 func (s *stdioServerTransport) processReadBuffer() {
-	for {
-		msg, err := s.readBuffer.ReadMessage()
-		if err != nil {
-			s.onError(err)
-		}
-		if msg == nil {
-			return
-		}
-		s.onReceiveMessage(msg)
+	msg, err := s.readBuffer.ReadMessage()
+	if err != nil {
+		s.OnError(err)
 	}
+	if msg == nil {
+		return
+	}
+	s.onReceiveMessage(msg)
 }
