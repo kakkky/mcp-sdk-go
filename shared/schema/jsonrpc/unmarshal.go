@@ -9,7 +9,7 @@ import (
 
 type Message struct {
 	Jsonrpc string          `json:"jsonrpc"`
-	Id      int             `json:"id,omitempty"`
+	Id      *int            `json:"id,omitempty"`
 	Method  string          `json:"method"`
 	Params  json.RawMessage `json:"params,omitempty"`
 	Result  json.RawMessage `json:"result,omitempty"`
@@ -29,7 +29,7 @@ func Unmarshal(jsonData []byte) (schema.JsonRpcMessage, error) {
 	// メッセージの種類を判定し、Unmarshalする
 	switch {
 	// Request
-	case message.Method != "" && message.Id != 0:
+	case message.Method != "" && message.Id != nil:
 		request, err := unmarshalRequest(message)
 		if err != nil {
 			return nil, err
@@ -37,13 +37,13 @@ func Unmarshal(jsonData []byte) (schema.JsonRpcMessage, error) {
 		return schema.JsonRpcRequest{
 			BaseMessage: schema.BaseMessage{
 				Jsonrpc: message.Jsonrpc,
-				Id:      message.Id,
+				Id:      *message.Id,
 			},
 			Request: request,
 		}, nil
 
 	// Notification
-	case message.Method != "" && message.Id == 0:
+	case message.Method != "" && message.Id == nil:
 		notification, err := unmarshalNotification(message)
 		if err != nil {
 			return nil, err
@@ -61,7 +61,7 @@ func Unmarshal(jsonData []byte) (schema.JsonRpcMessage, error) {
 		return schema.JsonRpcError{
 			BaseMessage: schema.BaseMessage{
 				Jsonrpc: message.Jsonrpc,
-				Id:      message.Id,
+				Id:      *message.Id,
 			},
 			Error: *errorData,
 		}, nil
@@ -74,7 +74,7 @@ func Unmarshal(jsonData []byte) (schema.JsonRpcMessage, error) {
 		return schema.JsonRpcResponse{
 			BaseMessage: schema.BaseMessage{
 				Jsonrpc: message.Jsonrpc,
-				Id:      message.Id,
+				Id:      *message.Id,
 			},
 			Result: result,
 		}, nil
