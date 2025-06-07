@@ -15,16 +15,16 @@ func (m *McpServer) setResourceRequestHandlers() error {
 	// リクエストハンドラは重複して登録できない
 	var resourceMethodlist = []string{"resources/list", "resources/templates/list", "resources/read"}
 	for _, method := range resourceMethodlist {
-		if err := m.server.ValidateCanSetRequestHandler(method); err != nil {
+		if err := m.Server.ValidateCanSetRequestHandler(method); err != nil {
 			return err
 		}
 	}
-	m.server.RegisterCapabilities(schema.ServerCapabilities{
+	m.Server.RegisterCapabilities(schema.ServerCapabilities{
 		Resources: &schema.Resources{
 			ListChanged: true,
 		},
 	})
-	m.server.SetRequestHandler(&schema.ListResourceRequestSchema{MethodName: "resources/list"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
+	m.Server.SetRequestHandler(&schema.ListResourceRequestSchema{MethodName: "resources/list"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
 		var resources []schema.ResourceSchema
 		for uri, registerdResource := range m.registeredResources {
 			if registerdResource.enabled {
@@ -58,7 +58,7 @@ func (m *McpServer) setResourceRequestHandlers() error {
 		}, nil
 	})
 
-	m.server.SetRequestHandler(&schema.ListResourceTemplatesRequestSchema{MethodName: "resources/templates/list"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
+	m.Server.SetRequestHandler(&schema.ListResourceTemplatesRequestSchema{MethodName: "resources/templates/list"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
 		var resourceTemplates []schema.ResourceTemplateSchema
 		for name, registerdResourceTemplate := range m.registeredResourceTemplates {
 			resourceTemplate := schema.ResourceTemplateSchema{
@@ -73,7 +73,7 @@ func (m *McpServer) setResourceRequestHandlers() error {
 		}, nil
 	})
 
-	m.server.SetRequestHandler(&schema.ReadResourceRequestSchema{MethodName: "resources/read"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
+	m.Server.SetRequestHandler(&schema.ReadResourceRequestSchema{MethodName: "resources/read"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
 		request, ok := req.Request.(*schema.ReadResourceRequestSchema)
 		if !ok {
 			return nil, mcperr.NewMcpErr(mcperr.INVALID_REQUEST, "invalid request", nil)
@@ -122,10 +122,10 @@ func (m *McpServer) setCompletionRequestHandlers() error {
 	if m.isCompletionHandlersInitialized {
 		return nil
 	}
-	if err := m.server.ValidateCanSetRequestHandler("completion/complete"); err != nil {
+	if err := m.Server.ValidateCanSetRequestHandler("completion/complete"); err != nil {
 		return err
 	}
-	m.server.SetRequestHandler(&schema.CompleteRequestSchema{MethodName: "completion/complete"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
+	m.Server.SetRequestHandler(&schema.CompleteRequestSchema{MethodName: "completion/complete"}, func(req schema.JsonRpcRequest) (schema.Result, error) {
 		request, ok := req.Request.(*schema.CompleteRequestSchema)
 		if !ok {
 			return nil, mcperr.NewMcpErr(mcperr.INVALID_REQUEST, "invalid request", nil)

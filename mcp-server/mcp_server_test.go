@@ -293,7 +293,7 @@ func TestMcpServer_Resource(t *testing.T) {
 			}
 			// リクエストハンドラが登録されていることを確認
 			if gotResource != nil || gotResourceTemplate != nil {
-				protocol := reflect.ValueOf(sut.server.Protocol).Elem()
+				protocol := reflect.ValueOf(sut.Server.Protocol).Elem()
 				handlers := protocol.FieldByName("handlers").Elem()
 				requestHandlers := handlers.FieldByName("requestHandlers")
 				// リクエストハンドラーとして登録されているメソッド一覧を取得

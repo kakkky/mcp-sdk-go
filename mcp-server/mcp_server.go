@@ -10,7 +10,7 @@ import (
 )
 
 type McpServer struct {
-	server                          *server.Server
+	Server                          *server.Server
 	registeredResources             map[string]*RegisteredResource
 	registeredResourceTemplates     map[string]*RegisteredResourceTemplate
 	isResourceHandlersInitialized   bool
@@ -19,22 +19,22 @@ type McpServer struct {
 
 func NewMcpServer(serverInfo schema.Implementation, options *server.ServerOptions) *McpServer {
 	return &McpServer{
-		server:                      server.NewServer(serverInfo, options),
+		Server:                      server.NewServer(serverInfo, options),
 		registeredResources:         make(map[string]*RegisteredResource),
 		registeredResourceTemplates: make(map[string]*RegisteredResourceTemplate),
 	}
 }
 
 func (m *McpServer) Connect(transport protocol.Transport) error {
-	return m.server.Connect(transport)
+	return m.Server.Connect(transport)
 }
 
 func (m *McpServer) Close() error {
-	return m.server.Close()
+	return m.Server.Close()
 }
 
 func (m *McpServer) isConnected() bool {
-	return m.server.Transport() != nil
+	return m.Server.Transport() != nil
 }
 
 // uriかtemplateのどちらかに値を渡す
@@ -108,7 +108,7 @@ func (m *McpServer) Resource(
 				if updates.Enabled != nil {
 					m.registeredResources[*uriPtr].enabled = *updates.Enabled
 				}
-				m.server.SendResourceListChanged()
+				m.Server.SendResourceListChanged()
 			},
 		}
 		m.registeredResources[*uriPtr] = &registeredResource
@@ -173,7 +173,7 @@ func (m *McpServer) Resource(
 				if updates.Enabled != nil {
 					m.registeredResourceTemplates[*namePtr].enabled = *updates.Enabled
 				}
-				m.server.SendResourceListChanged()
+				m.Server.SendResourceListChanged()
 			},
 		}
 		m.registeredResourceTemplates[*namePtr] = &registeredResourceTemplate
