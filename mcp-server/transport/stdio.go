@@ -109,7 +109,7 @@ func (s *stdioServerTransport) stdinOnData() {
 	}
 }
 func (s *stdioServerTransport) stdinOnError() {
-	if s.stdScanner.Err() != nil {
+	if s.stdScanner.Err() != nil && s.onError != nil {
 		s.onError(s.stdScanner.Err())
 	}
 }
