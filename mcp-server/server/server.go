@@ -15,6 +15,8 @@ type ServerOptions struct {
 	protocol.ProtocolOptions
 }
 
+// プラグイン可能なトランスポートの上に構築されたMCPサーバー
+// このサーバーは、クライアントから開始される初期化フローに自動的に応答する
 type Server struct {
 	clientCapabilities schema.ClientCapabilities
 	clientVersion      schema.Implementation

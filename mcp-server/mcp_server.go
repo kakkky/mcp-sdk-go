@@ -9,6 +9,9 @@ import (
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
+// リソース、ツール、プロンプトを扱うための、よりシンプルなAPIを提供する高レベルのMCPサーバー
+// 通知の送信やカスタムリクエストハンドラーの設定など、より高度な使用を行いたい場合は、
+// Serverプロパティ経由で利用できる下位の Server インスタンスを使用する必要がある
 type McpServer struct {
 	Server                          *server.Server
 	registeredResources             map[string]*RegisteredResource
