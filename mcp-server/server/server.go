@@ -22,8 +22,6 @@ type Server struct {
 	instructions       string
 	serverInfo         schema.Implementation
 	Protocol
-
-	onInitialized func() error
 }
 
 func NewServer(serverInfo schema.Implementation, options *ServerOptions) *Server {
@@ -44,10 +42,7 @@ func NewServer(serverInfo schema.Implementation, options *ServerOptions) *Server
 		return s.onInitialize(request)
 	})
 	s.SetNotificationHandler(&schema.InitializeNotificationSchema{MethodName: "notifications/initialized"}, func(notification schema.JsonRpcNotification) error {
-		if s.onInitialized != nil {
-			return s.onInitialized()
-		}
-		return nil
+		return s.onInitialized()
 	})
 
 	s.SetValidateCapabilityForMethod(s.validateCapabilityForMethod)
@@ -81,7 +76,16 @@ func (s *Server) onInitialize(request schema.JsonRpcRequest) (*schema.Initialize
 		ServerInfo:      s.serverInfo,
 		Instructions:    s.instructions,
 	}, nil
+}
 
+// クライアントから initialized Notification が送られたときにチャネルに通知が送られる
+// この通知を受信後、OperationPhaseが開始できる
+// Connect後にServerからリクエストを送る場合は、このチャネル受信後に行う必要がある
+var OperationPhaseStartNotify = make(chan struct{}, 1)
+
+func (s *Server) onInitialized() error {
+	OperationPhaseStartNotify <- struct{}{}
+	return nil
 }
 
 // 基本的な通信メソッド
