@@ -4,12 +4,15 @@ package schema
 type ServerCapabilities struct {
 	Experimental any `json:"experimental,omitempty"`
 	*Logging     `json:"logging,omitempty"`
+	*Completion  `json:"completion,omitempty"`
 	*Prompts     `json:"prompts,omitempty"`
 	*Resources   `json:"resources,omitempty"`
 	*Tools       `json:"tools,omitempty"`
 }
 
 type Logging struct{}
+
+type Completion struct{}
 
 type Prompts struct {
 	ListChanged bool `json:"listChanged,omitempty"`
