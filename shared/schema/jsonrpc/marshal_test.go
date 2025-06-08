@@ -3,7 +3,6 @@ package jsonrpc
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -279,7 +278,6 @@ func TestMarshal(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			jsonData, err := Marshal(test.message)
-			fmt.Println(string(jsonData))
 			if err != nil {
 				t.Fatalf("Failed to marshal message: %v", err)
 			}
