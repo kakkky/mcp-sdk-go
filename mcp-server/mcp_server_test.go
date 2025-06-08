@@ -70,7 +70,34 @@ func TestMcpServer_Resource(t *testing.T) {
 				name: "test-template",
 				uri:  "",
 				template: func() *ResourceTemplate {
-					template, _ := NewResourceTemplate("/api/users/{userId}", nil)
+					template, _ := NewResourceTemplate(
+						"/api/users/{userId}",
+						&ResourceTemplateCallbacks{
+							List: func() schema.ListResourcesResultSchema {
+								return schema.ListResourcesResultSchema{
+									Resources: []schema.ResourceSchema{
+										{
+											Name: "test-template-123",
+											Uri:  "/api/users/123",
+										},
+										{
+											Name: "test-template-456",
+											Uri:  "/api/users/456",
+										},
+										{
+											Name: "test-template-789",
+											Uri:  "/api/users/789",
+										},
+									},
+								}
+							},
+							Complete: map[string]CompleteResourceCallback{
+								"userId": func(value string) []string {
+									return []string{"123", "456", "789"}
+								},
+							},
+						},
+					)
 					return template
 				}(),
 				metadata: &schema.ResourceMetadata{
@@ -93,7 +120,34 @@ func TestMcpServer_Resource(t *testing.T) {
 			},
 			expectedResourceTemplate: &RegisteredResourceTemplate{
 				resourceTemplate: func() *ResourceTemplate {
-					template, _ := NewResourceTemplate("/api/users/{userId}", nil)
+					template, _ := NewResourceTemplate(
+						"/api/users/{userId}",
+						&ResourceTemplateCallbacks{
+							List: func() schema.ListResourcesResultSchema {
+								return schema.ListResourcesResultSchema{
+									Resources: []schema.ResourceSchema{
+										{
+											Name: "test-template-123",
+											Uri:  "/api/users/123",
+										},
+										{
+											Name: "test-template-456",
+											Uri:  "/api/users/456",
+										},
+										{
+											Name: "test-template-789",
+											Uri:  "/api/users/789",
+										},
+									},
+								}
+							},
+							Complete: map[string]CompleteResourceCallback{
+								"userId": func(value string) []string {
+									return []string{"123", "456", "789"}
+								},
+							},
+						},
+					)
 					return template
 				}(),
 				metadata: &schema.ResourceMetadata{
@@ -219,6 +273,7 @@ func TestMcpServer_Resource(t *testing.T) {
 				cmp.AllowUnexported(RegisteredResource{}),
 				cmpopts.IgnoreFields(RegisteredResourceTemplate{}, "readCallback", "Enable", "Disable", "Update", "Remove"),
 				cmp.AllowUnexported(RegisteredResourceTemplate{}, ResourceTemplate{}),
+				cmpopts.IgnoreFields(ResourceTemplateCallbacks{}, "List", "Complete"), //TODO: コールバックの出力比較
 				cmp.Comparer(func(a, b utilities.UriTemplate) bool {
 					return a.ToString() == b.ToString()
 				}),
