@@ -27,7 +27,6 @@ func main() {
 	mcpServer.Resource(
 		"example",
 		"file://sample/uri",
-		nil,
 		&schema.ResourceMetadata{
 			Description: "This is an example resource",
 			MimeType:    "text/plain",
@@ -40,8 +39,7 @@ func main() {
 					ContentData:  "This is the content of the example resource.",
 				},
 			}}, nil
-		},
-		nil)
+		})
 
 	// Resource Templateを登録
 	template, err := mcpserver.NewResourceTemplate("file://sample/{variable}", &mcpserver.ResourceTemplateCallbacks{
@@ -61,7 +59,7 @@ func main() {
 		},
 		Complete: map[string]mcpserver.CompleteResourceCallback{
 			"variable": func(value string) []string {
-				// ここでは単純に固定の値を返すが、実際には何らかのロジックで候補を生成する
+				// ここでは単純に固定の値を返すが、実際には何らかのロジックで候補を生成することができる
 				return []string{"example-value", "another-value"}
 			},
 		},
@@ -69,15 +67,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	mcpServer.Resource(
+	mcpServer.ResourceTemplate(
 		"example-template",
-		"",
 		template,
 		&schema.ResourceMetadata{
 			Description: "This is an example resource template",
 			MimeType:    "text/plain",
 		},
-		nil,
 		func(url url.URL, variables map[string]any) (schema.ReadResourceResultSchema, error) {
 			switch variables["variable"] {
 			case "example-value":

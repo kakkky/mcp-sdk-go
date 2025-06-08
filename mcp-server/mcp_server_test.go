@@ -13,29 +13,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// URIベースのリソース登録テスト
 func TestMcpServer_Resource(t *testing.T) {
 	type args struct {
-		name                         string
-		uri                          string
-		template                     *ResourceTemplate
-		metadata                     *schema.ResourceMetadata
-		readResourceCallBack         ReadResourceCallback[schema.ResourceContentSchema]
-		readResourceTemplateCallBack ReadResourceTemplateCallback[schema.ResourceContentSchema]
+		name                 string
+		uri                  string
+		metadata             *schema.ResourceMetadata
+		readResourceCallBack ReadResourceCallback[schema.ResourceContentSchema]
 	}
 	tests := []struct {
-		name                     string
-		args                     args
-		expectedResource         *RegisteredResource
-		expectedResourceTemplate *RegisteredResourceTemplate
-		isExpectedErr            bool
+		name             string
+		args             args
+		expectedResource *RegisteredResource
+		isExpectedErr    bool
 	}{
 		// URIリソースの正常登録
 		{
 			name: "normal : uri is provided",
 			args: args{
-				name:     "test",
-				uri:      "file:///test.txt",
-				template: nil,
+				name: "test",
+				uri:  "file:///test.txt",
 				metadata: &schema.ResourceMetadata{
 					Description: "test description",
 					MimeType:    "text/plain",
@@ -51,7 +48,6 @@ func TestMcpServer_Resource(t *testing.T) {
 						},
 					}, nil
 				},
-				readResourceTemplateCallBack: nil,
 			},
 			expectedResource: &RegisteredResource{
 				name: "test",
@@ -63,12 +59,123 @@ func TestMcpServer_Resource(t *testing.T) {
 			},
 			isExpectedErr: false,
 		},
+		// URIリソース登録時にコールバック未指定（エラー）
+		{
+			name: "error : uri without callback",
+			args: args{
+				name: "missing-callback",
+				uri:  "file://no-callback.txt",
+				metadata: &schema.ResourceMetadata{
+					Description: "Missing callback",
+					MimeType:    "text/plain",
+				},
+				readResourceCallBack: nil, // コールバック未指定
+			},
+			expectedResource: nil,
+			isExpectedErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sut := NewMcpServer(schema.Implementation{}, &server.ServerOptions{
+				Capabilities: schema.ServerCapabilities{
+					Resources: &schema.Resources{
+						ListChanged: true,
+					},
+				},
+			})
+
+			gotResource, err := sut.Resource(
+				tt.args.name,
+				tt.args.uri,
+				tt.args.metadata,
+				tt.args.readResourceCallBack)
+
+			if (err != nil) != tt.isExpectedErr {
+				t.Errorf("McpServer.Resource() error = %v, wantErr %v", err, tt.isExpectedErr)
+				return
+			}
+
+			cmpOpts := cmp.Options{
+				cmpopts.IgnoreFields(RegisteredResource{}, "readCallback", "Enable", "Disable", "Update", "Remove"),
+				cmp.AllowUnexported(RegisteredResource{}),
+			}
+
+			if diff := cmp.Diff(gotResource, tt.expectedResource, cmpOpts); diff != "" {
+				t.Errorf("McpServer.Resource() gotResource = %v, want %v, diff %s", gotResource, tt.expectedResource, diff)
+			}
+
+			// リソースが登録されているか確認
+			if tt.expectedResource != nil {
+				if diff := cmp.Diff(sut.registeredResources[tt.args.uri], gotResource, cmpOpts); diff != "" {
+					t.Errorf("McpServer.Resource() registeredResources = %v, want %v, diff %s", sut.registeredResources[tt.args.uri], tt.expectedResource, diff)
+				}
+			}
+
+			// リソースを更新できる
+			if gotResource != nil {
+				updatedUri := "file://test2.txt"
+				// URIを更新する
+				gotResource.Update(ResourceUpdates{
+					Uri: updatedUri,
+				})
+				// リソースが更新されていることを確認
+				if diff := cmp.Diff(sut.registeredResources[updatedUri], gotResource, cmpOpts); diff != "" {
+					t.Errorf("McpServer.Resource() registeredResources = %v, want %v, diff %s", sut.registeredResources["file://test2.txt"], gotResource, diff)
+				}
+				// リソースを無効化できる
+				gotResource.Disable()
+				if sut.registeredResources[updatedUri].enabled {
+					t.Errorf("McpServer.Resource() registeredResources = %v, want %v", sut.registeredResources[updatedUri].enabled, false)
+				}
+
+				// リソースを削除できる
+				gotResource.Remove()
+				if _, ok := sut.registeredResources[updatedUri]; ok {
+					t.Errorf("McpServer.Resource() registeredResources = %v, want %v", sut.registeredResources[updatedUri], nil)
+				}
+			}
+
+			// リクエストハンドラが登録されていることを確認
+			if gotResource != nil {
+				protocol := reflect.ValueOf(sut.Server.Protocol).Elem()
+				handlers := protocol.FieldByName("handlers").Elem()
+				requestHandlers := handlers.FieldByName("requestHandlers")
+				// リクエストハンドラーとして登録されているメソッド一覧を取得
+				var methods []string
+				for _, method := range requestHandlers.MapKeys() {
+					methods = append(methods, method.String())
+				}
+				// 想定されるメソッド一覧と比較
+				basicMethods := []string{"ping", "initialize"}
+				expectedMethods := append([]string{"resources/list", "resources/read", "completion/complete", "resources/templates/list"}, basicMethods...)
+				if !assert.ElementsMatch(t, methods, expectedMethods) {
+					t.Errorf("McpServer.Resource() requestHandlers = %v, want %v", methods, expectedMethods)
+				}
+			}
+		})
+	}
+}
+
+// テンプレートベースのリソース登録テスト
+func TestMcpServer_ResourceTemplate(t *testing.T) {
+	type args struct {
+		name                         string
+		template                     *ResourceTemplate
+		metadata                     *schema.ResourceMetadata
+		readResourceTemplateCallBack ReadResourceTemplateCallback[schema.ResourceContentSchema]
+	}
+	tests := []struct {
+		name                     string
+		args                     args
+		expectedResourceTemplate *RegisteredResourceTemplate
+		isExpectedErr            bool
+	}{
 		// テンプレートリソースの正常登録
 		{
 			name: "normal : template is provided",
 			args: args{
 				name: "test-template",
-				uri:  "",
 				template: func() *ResourceTemplate {
 					template, _ := NewResourceTemplate(
 						"/api/users/{userId}",
@@ -104,7 +211,6 @@ func TestMcpServer_Resource(t *testing.T) {
 					Description: "User resource template",
 					MimeType:    "application/json",
 				},
-				readResourceCallBack: nil,
 				readResourceTemplateCallBack: func(url url.URL, vars map[string]any) (schema.ReadResourceResultSchema, error) {
 					userId, _ := vars["userId"].(string)
 					return schema.ReadResourceResultSchema{
@@ -158,77 +264,11 @@ func TestMcpServer_Resource(t *testing.T) {
 			},
 			isExpectedErr: false,
 		},
-
-		// URIとテンプレートの両方を指定した場合（エラー）
-		{
-			name: "error : both uri and template are provided",
-			args: args{
-				name: "invalid-resource",
-				uri:  "file://data.txt",
-				template: func() *ResourceTemplate {
-					template, _ := NewResourceTemplate("/api/data/{id}", nil)
-					return template
-				}(),
-				metadata: &schema.ResourceMetadata{
-					Description: "Invalid resource",
-					MimeType:    "text/plain",
-				},
-				readResourceCallBack: func(url url.URL) (schema.ReadResourceResultSchema, error) {
-					return schema.ReadResourceResultSchema{}, nil
-				},
-				readResourceTemplateCallBack: func(url url.URL, vars map[string]any) (schema.ReadResourceResultSchema, error) {
-					return schema.ReadResourceResultSchema{}, nil
-				},
-			},
-			expectedResource:         nil,
-			expectedResourceTemplate: nil,
-			isExpectedErr:            true,
-		},
-
-		// URIとテンプレートの両方を省略した場合（エラー）
-		{
-			name: "error : neither uri nor template is provided",
-			args: args{
-				name:     "missing-resource",
-				uri:      "",
-				template: nil,
-				metadata: &schema.ResourceMetadata{
-					Description: "Missing resource",
-					MimeType:    "text/plain",
-				},
-				readResourceCallBack:         nil,
-				readResourceTemplateCallBack: nil,
-			},
-			expectedResource:         nil,
-			expectedResourceTemplate: nil,
-			isExpectedErr:            true,
-		},
-
-		// URIリソース登録時にコールバック未指定（エラー）
-		{
-			name: "error : uri without callback",
-			args: args{
-				name:     "missing-callback",
-				uri:      "file://no-callback.txt",
-				template: nil,
-				metadata: &schema.ResourceMetadata{
-					Description: "Missing callback",
-					MimeType:    "text/plain",
-				},
-				readResourceCallBack:         nil, // コールバック未指定
-				readResourceTemplateCallBack: nil,
-			},
-			expectedResource:         nil,
-			expectedResourceTemplate: nil,
-			isExpectedErr:            true,
-		},
-
 		// テンプレートリソース登録時にコールバック未指定（エラー）
 		{
 			name: "error : template without callback",
 			args: args{
 				name: "template-missing-callback",
-				uri:  "",
 				template: func() *ResourceTemplate {
 					template, _ := NewResourceTemplate("/api/data/{id}", nil)
 					return template
@@ -237,10 +277,8 @@ func TestMcpServer_Resource(t *testing.T) {
 					Description: "Template missing callback",
 					MimeType:    "application/json",
 				},
-				readResourceCallBack:         nil,
 				readResourceTemplateCallBack: nil, // コールバック未指定
 			},
-			expectedResource:         nil,
 			expectedResourceTemplate: nil,
 			isExpectedErr:            true,
 		},
@@ -255,22 +293,18 @@ func TestMcpServer_Resource(t *testing.T) {
 				},
 			})
 
-			gotResource, gotResourceTemplate, err := sut.Resource(
+			gotResourceTemplate, err := sut.ResourceTemplate(
 				tt.args.name,
-				tt.args.uri,
 				tt.args.template,
 				tt.args.metadata,
-				tt.args.readResourceCallBack,
 				tt.args.readResourceTemplateCallBack)
 
 			if (err != nil) != tt.isExpectedErr {
-				t.Errorf("McpServer.Resource() error = %v, wantErr %v", err, tt.isExpectedErr)
+				t.Errorf("McpServer.ResourceTemplate() error = %v, wantErr %v", err, tt.isExpectedErr)
 				return
 			}
 
 			cmpOpts := cmp.Options{
-				cmpopts.IgnoreFields(RegisteredResource{}, "readCallback", "Enable", "Disable", "Update", "Remove"),
-				cmp.AllowUnexported(RegisteredResource{}),
 				cmpopts.IgnoreFields(RegisteredResourceTemplate{}, "readCallback", "Enable", "Disable", "Update", "Remove"),
 				cmp.AllowUnexported(RegisteredResourceTemplate{}, ResourceTemplate{}),
 				cmpopts.IgnoreFields(ResourceTemplateCallbacks{}, "List", "Complete"), //TODO: コールバックの出力比較
@@ -279,48 +313,17 @@ func TestMcpServer_Resource(t *testing.T) {
 				}),
 			}
 
-			if diff := cmp.Diff(gotResource, tt.expectedResource, cmpOpts); diff != "" {
-				t.Errorf("McpServer.Resource() gotResource = %v, want %v, diff %s", gotResource, tt.expectedResource, diff)
-			}
 			if diff := cmp.Diff(gotResourceTemplate, tt.expectedResourceTemplate, cmpOpts); diff != "" {
-				t.Errorf("McpServer.Resource() gotResourceTemplate = %v, want %v, diff %s", gotResourceTemplate, tt.expectedResourceTemplate, diff)
+				t.Errorf("McpServer.ResourceTemplate() gotResourceTemplate = %v, want %v, diff %s", gotResourceTemplate, tt.expectedResourceTemplate, diff)
 			}
-			// リソースが登録されているか確認
-			if tt.expectedResource != nil {
-				if diff := cmp.Diff(sut.registeredResources[tt.args.uri], gotResource, cmpOpts); diff != "" {
-					t.Errorf("McpServer.Resource() registeredResources = %v, want %v, diff %s", sut.registeredResources[tt.args.uri], tt.expectedResource, diff)
-				}
-			}
+
 			// リソーステンプレートが登録されているか確認
 			if tt.expectedResourceTemplate != nil {
 				if diff := cmp.Diff(sut.registeredResourceTemplates[tt.args.name], gotResourceTemplate, cmpOpts); diff != "" {
-					t.Errorf("McpServer.Resource() registeredResourceTemplates = %v, want %v, diff %s", sut.registeredResourceTemplates[tt.args.name], tt.expectedResourceTemplate, diff)
+					t.Errorf("McpServer.ResourceTemplate() registeredResourceTemplates = %v, want %v, diff %s", sut.registeredResourceTemplates[tt.args.name], tt.expectedResourceTemplate, diff)
 				}
 			}
 
-			// リソースを更新できる
-			if gotResource != nil {
-				updatedUri := "file://test2.txt"
-				// URIを更新する
-				gotResource.Update(ResourceUpdates{
-					Uri: updatedUri,
-				})
-				// リソースが更新されていることを確認
-				if diff := cmp.Diff(sut.registeredResources[updatedUri], gotResource, cmpOpts); diff != "" {
-					t.Errorf("McpServer.Resource() registeredResources = %v, want %v, diff %s", sut.registeredResources["file://test2.txt"], gotResource, diff)
-				}
-				// リソースを無効化できる
-				gotResource.Disable()
-				if sut.registeredResources[updatedUri].enabled {
-					t.Errorf("McpServer.Resource() registeredResources = %v, want %v", sut.registeredResources[updatedUri].enabled, false)
-				}
-
-				// リソースを削除できる
-				gotResource.Remove()
-				if _, ok := sut.registeredResources[updatedUri]; ok {
-					t.Errorf("McpServer.Resource() registeredResources = %v, want %v", sut.registeredResources[updatedUri], nil)
-				}
-			}
 			// リソーステンプレートを更新できる
 			if gotResourceTemplate != nil {
 				// nameを更新する
@@ -330,7 +333,7 @@ func TestMcpServer_Resource(t *testing.T) {
 				})
 				// リソーステンプレートが更新されていることを確認
 				if diff := cmp.Diff(sut.registeredResourceTemplates[updatedName], gotResourceTemplate, cmpOpts); diff != "" {
-					t.Errorf("McpServer.Resource() registeredResourceTemplates = %v, want %v, diff %s", sut.registeredResourceTemplates["updated"], gotResourceTemplate, diff)
+					t.Errorf("McpServer.ResourceTemplate() registeredResourceTemplates = %v, want %v, diff %s", sut.registeredResourceTemplates["updated"], gotResourceTemplate, diff)
 				}
 
 				updatedUriTemp, _ := utilities.NewUriTemplate("file:///updated/{test}")
@@ -343,11 +346,12 @@ func TestMcpServer_Resource(t *testing.T) {
 				})
 				// リソーステンプレートが更新されていることを確認
 				if diff := cmp.Diff(sut.registeredResourceTemplates[updatedName], gotResourceTemplate, cmpOpts); diff != "" {
-					t.Errorf("McpServer.Resource() registeredResourceTemplates = %v, want %v, diff %s", sut.registeredResourceTemplates[tt.args.name], gotResourceTemplate, diff)
+					t.Errorf("McpServer.ResourceTemplate() registeredResourceTemplates = %v, want %v, diff %s", sut.registeredResourceTemplates[tt.args.name], gotResourceTemplate, diff)
 				}
 			}
+
 			// リクエストハンドラが登録されていることを確認
-			if gotResource != nil || gotResourceTemplate != nil {
+			if gotResourceTemplate != nil {
 				protocol := reflect.ValueOf(sut.Server.Protocol).Elem()
 				handlers := protocol.FieldByName("handlers").Elem()
 				requestHandlers := handlers.FieldByName("requestHandlers")
@@ -358,12 +362,9 @@ func TestMcpServer_Resource(t *testing.T) {
 				}
 				// 想定されるメソッド一覧と比較
 				basicMethods := []string{"ping", "initialize"}
-				expectedMethods := append([]string{"resources/list", "resources/templates/list", "resources/read", "completion/complete"}, basicMethods...)
-				if len(methods) != len(expectedMethods) {
-					t.Errorf("McpServer.Resource() requestHandlers = %v, want %v", len(methods), len(expectedMethods))
-				}
+				expectedMethods := append([]string{"resources/templates/list", "resources/read", "completion/complete", "resources/list"}, basicMethods...)
 				if !assert.ElementsMatch(t, methods, expectedMethods) {
-					t.Errorf("McpServer.Resource() requestHandlers = %v, want %v", methods, expectedMethods)
+					t.Errorf("McpServer.ResourceTemplate() requestHandlers = %v, want %v", methods, expectedMethods)
 				}
 			}
 		})
