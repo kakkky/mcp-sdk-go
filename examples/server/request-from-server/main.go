@@ -15,9 +15,7 @@ func main() {
 		},
 		&server.ServerOptions{
 			Capabilities: schema.ServerCapabilities{
-				Resources: &schema.Resources{
-					ListChanged: true,
-				},
+				Logging: &schema.Logging{},
 			},
 		})
 	transport := transport.NewStdioServerTransport()
@@ -28,5 +26,12 @@ func main() {
 		}
 	}()
 	<-server.OperationPhaseStartNotify
-	mcpServer.Server.Ping()
+	if err := mcpServer.Server.SendLoggingMessage(
+		schema.LoggingMessageNotificationParams{
+			Level: schema.NOTICE,
+			Data:  "Server started successfully",
+		},
+	); err != nil {
+		panic(err)
+	}
 }
