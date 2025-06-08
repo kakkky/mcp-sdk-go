@@ -70,7 +70,7 @@ func TestMcpServer_Resource(t *testing.T) {
 				name: "test-template",
 				uri:  "",
 				template: func() *ResourceTemplate {
-					template, _ := NewResourceTemplate("/api/users/{userId}")
+					template, _ := NewResourceTemplate("/api/users/{userId}", nil)
 					return template
 				}(),
 				metadata: &schema.ResourceMetadata{
@@ -93,7 +93,7 @@ func TestMcpServer_Resource(t *testing.T) {
 			},
 			expectedResourceTemplate: &RegisteredResourceTemplate{
 				resourceTemplate: func() *ResourceTemplate {
-					template, _ := NewResourceTemplate("/api/users/{userId}")
+					template, _ := NewResourceTemplate("/api/users/{userId}", nil)
 					return template
 				}(),
 				metadata: &schema.ResourceMetadata{
@@ -112,7 +112,7 @@ func TestMcpServer_Resource(t *testing.T) {
 				name: "invalid-resource",
 				uri:  "file://data.txt",
 				template: func() *ResourceTemplate {
-					template, _ := NewResourceTemplate("/api/data/{id}")
+					template, _ := NewResourceTemplate("/api/data/{id}", nil)
 					return template
 				}(),
 				metadata: &schema.ResourceMetadata{
@@ -176,7 +176,7 @@ func TestMcpServer_Resource(t *testing.T) {
 				name: "template-missing-callback",
 				uri:  "",
 				template: func() *ResourceTemplate {
-					template, _ := NewResourceTemplate("/api/data/{id}")
+					template, _ := NewResourceTemplate("/api/data/{id}", nil)
 					return template
 				}(),
 				metadata: &schema.ResourceMetadata{

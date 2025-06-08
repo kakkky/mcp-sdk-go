@@ -57,7 +57,7 @@ func (r *ListResourcesResultSchema) Result() any {
 }
 
 type ListResourceTemplatesResultSchema struct {
-	ResourceTemplates []ResourceTemplateSchema
+	ResourceTemplates []ResourceTemplateSchema `json:"resourceTemplates"`
 }
 
 func (r *ListResourceTemplatesResultSchema) Result() any {

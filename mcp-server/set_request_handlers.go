@@ -130,7 +130,7 @@ func (m *McpServer) setCompletionRequestHandlers() error {
 		if !ok {
 			return nil, mcperr.NewMcpErr(mcperr.INVALID_REQUEST, "invalid request", nil)
 		}
-		params := request.Params().(*schema.CompleteRequestParams)
+		params := request.Params().(schema.CompleteRequestParams)
 		switch params.Ref.Type() {
 		case "ref/prompt":
 			// TODO: implement

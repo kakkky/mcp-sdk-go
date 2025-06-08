@@ -7,23 +7,26 @@ import (
 
 type ResourceTemplate struct {
 	uriTemp   *utilities.UriTemplate
-	callBacks *struct {
-		list     ListResourcesCallback
-		complete map[string]CompleteResourceCallback
-	}
+	callBacks *ResourceTemplateCallbacks
+}
+
+type ResourceTemplateCallbacks struct {
+	List     ListResourcesCallback
+	Complete map[string]CompleteResourceCallback
 }
 
 // uriTemp（テンプレート）に具体的な値を埋め込んだURIを持つリソースをリストで返すコールバック
 type ListResourcesCallback func() schema.ListResourcesResultSchema
 type CompleteResourceCallback func(value string) []string
 
-func NewResourceTemplate(uriTemplate string) (*ResourceTemplate, error) {
+func NewResourceTemplate(uriTemplate string, callbacks *ResourceTemplateCallbacks) (*ResourceTemplate, error) {
 	uriTemp, err := utilities.NewUriTemplate(uriTemplate)
 	if err != nil {
 		return nil, err
 	}
 	return &ResourceTemplate{
-		uriTemp: uriTemp,
+		uriTemp:   uriTemp,
+		callBacks: callbacks,
 	}, nil
 }
 
@@ -35,12 +38,12 @@ func (r *ResourceTemplate) ListCallback() ListResourcesCallback {
 	if r.callBacks == nil {
 		return nil
 	}
-	return r.callBacks.list
+	return r.callBacks.List
 }
 
 func (r *ResourceTemplate) CompleteCallBack(variable string) CompleteResourceCallback {
 	if r.callBacks == nil {
 		return nil
 	}
-	return r.callBacks.complete[variable]
+	return r.callBacks.Complete[variable]
 }

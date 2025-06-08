@@ -8,9 +8,15 @@ import (
 )
 
 func (m *McpServer) handleResourceCompletion(request schema.CompleteRequestSchema, ref schema.ResourceReferenceSchema) (*schema.CompleteResultSchema, error) {
-	params := request.Params().(*schema.CompleteRequestParams)
-
-	template := m.registeredResourceTemplates[ref.UriOrName()]
+	params := request.Params().(schema.CompleteRequestParams)
+	// refで渡されたリソーステンプレートのURIと一致するテンプレートを探す
+	var template *RegisteredResourceTemplate
+	for _, registeredTemplate := range m.registeredResourceTemplates {
+		if registeredTemplate.resourceTemplate.uriTemplate().ToString() == ref.UriOrName() {
+			template = registeredTemplate
+			break
+		}
+	}
 	// テンプレートが見つからなかったが、固定リソースが見つかった場合は空の補完を返す（しかし、リクエストエラーとすべきだろう）
 	if template == nil {
 		if m.registeredResources[ref.UriOrName()] != nil {
