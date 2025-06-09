@@ -1,11 +1,12 @@
-package server
+package shared
 
 import (
 	"github.com/kakkky/mcp-sdk-go/shared/protocol"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
-//go:generate mockgen -source=./protocol_interface.go -destination=./mock/protocol_mock.go -package=mock
+//go:generate mockgen -source=./protocol_interface.go -destination=../client/mock/protocol_mock.go -package=mock
+//go:generate mockgen -source=./protocol_interface.go -destination=../mcp-server/server/mock/protocol_mock.go -package=mock
 type Protocol interface {
 	SetRequestHandler(schema schema.Request, handler func(schema.JsonRpcRequest) (schema.Result, error))
 	SetNotificationHandler(schema schema.Notification, handler func(schema.JsonRpcNotification) error)

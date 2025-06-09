@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kakkky/mcp-sdk-go/shared"
 	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 	"github.com/kakkky/mcp-sdk-go/shared/protocol"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
@@ -23,7 +24,7 @@ type Server struct {
 	capabilities       schema.ServerCapabilities
 	instructions       string
 	serverInfo         schema.Implementation
-	Protocol
+	shared.Protocol
 }
 
 func NewServer(serverInfo schema.Implementation, options *ServerOptions) *Server {
