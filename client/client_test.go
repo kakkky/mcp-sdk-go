@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kakkky/mcp-sdk-go/mcp-server/server/mock"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
 )
 
@@ -126,7 +127,7 @@ func TestClient_ValidateCapabilities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			sut := NewClient(schema.Implementation{}, &ClientOptions{
-				capabilities: schema.ClientCapabilities{},
+				Capabilities: schema.ClientCapabilities{},
 			})
 			// テストケース固有のサーバー機能設定を適用
 			tt.serverCapSetup(&sut.serverCapabilities)
@@ -144,6 +145,46 @@ func TestClient_ValidateCapabilities(t *testing.T) {
 					t.Errorf("ValidateCapabilities() error = %v, want error containing %v", err, tt.errorContains)
 				}
 			}
+		})
+	}
+}
+
+func TestClient_Connect(t *testing.T) {
+	tests := []struct {
+		name                           string
+		mockFn                         func(*mock.MockProtocol)
+		expectedInitializeResult       schema.InitializeResultSchema
+		expectedInitializeNotification schema.InitializeNotificationSchema
+		isExpectedErr                  bool
+	}{
+		{},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// ctrl := gomock.NewController(t)
+			// defer ctrl.Finish()
+
+			// mockProtocol := mock.NewMockProtocol(ctrl)
+			// if tt.mockFn != nil {
+			// 	tt.mockFn(mockProtocol)
+			// }
+
+			// sut := NewClient(
+			// 	schema.Implementation{Name: "test-client", Version: "1.0.0"},
+			// 	&ClientOptions{
+			// 		Capabilities: schema.ClientCapabilities{},
+			// 	},
+			// )
+			// sut.Protocol = mockProtocol
+			// // 以下の変数にリクエスト等書き込むようにする
+			// var gotRequest *schema.InitializeRequestSchema
+			// var gotNotification *schema.InitializeNotificationSchema
+			// err := sut.Connect(mockProtocol.Transport())
+			// if (err != nil) != tt.isExpectedErr {
+			// 	t.Errorf("Connect() error = %v, isExpectedErr %v", err, tt.isExpectedErr)
+			// 	return
+			// }
+
 		})
 	}
 }
