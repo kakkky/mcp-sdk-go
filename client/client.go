@@ -10,7 +10,7 @@ import (
 )
 
 type ClientOptions struct {
-	capabilities schema.ClientCapabilities
+	Capabilities schema.ClientCapabilities
 	protocol.ProtocolOptions
 }
 
@@ -33,7 +33,7 @@ func NewClient(clientInfo schema.Implementation, options *ClientOptions) *Client
 		c.capabilities = schema.ClientCapabilities{}
 		c.Protocol = protocol.NewProtocol(nil)
 	} else {
-		c.capabilities = options.capabilities
+		c.capabilities = options.Capabilities
 		c.Protocol = protocol.NewProtocol(&options.ProtocolOptions)
 	}
 
@@ -73,6 +73,82 @@ func (c *Client) ValidateCapabilities(capability any, method string) error {
 		}
 	default:
 		return fmt.Errorf("%s unknown capability type for method", method)
+	}
+	return nil
+}
+
+// Transport側で接続が確立されたことを通知するためのチャネル
+var TransportStartedNotify = make(chan struct{}, 1)
+
+func (c *Client) Connect(transport protocol.Transport) error {
+	if transport == nil {
+		return errors.New("transport is required")
+	}
+	// transportに接続
+	go func() error {
+		fmt.Println("Connecting to transport...")
+		if err := c.Protocol.Connect(transport); err != nil {
+			if err := c.Close(); err != nil {
+				fmt.Println("Failed to close protocol after connection error:", err)
+			}
+			return fmt.Errorf("failed to connect: %w", err)
+		}
+		return nil
+	}()
+	// transportへの接続が確立後に後続のinitialiation phaseを開始する
+	<-TransportStartedNotify
+	// initializeリクエスト
+	result, err := c.Request(&schema.InitializeRequestSchema{
+		MethodName: "initialize",
+		ParamsData: schema.InitializeRequestParams{
+			ProtocolVersion: schema.LATEST_PROTOCOL_VERSION,
+			Capabilities:    c.capabilities,
+			ClientInfo:      c.clientInfo,
+		},
+	}, &schema.InitializeResultSchema{})
+	if err != nil {
+		if err := c.Close(); err != nil {
+			fmt.Println("Failed to close protocol after connection error:", err)
+		}
+		return fmt.Errorf("failed to initialize: %w", err)
+	}
+	if result == nil {
+		if err := c.Close(); err != nil {
+			fmt.Println("Failed to close protocol after connection error:", err)
+		}
+		return fmt.Errorf("server sent invalid initialize result")
+	}
+	initializeResult, ok := result.(*schema.InitializeResultSchema)
+	if !ok {
+		if err := c.Close(); err != nil {
+			fmt.Println("Failed to close protocol after connection error:", err)
+		}
+		return fmt.Errorf("server sent invalid initialize result: %T", result)
+	}
+
+	// サーバーのプロトコルバージョンがサポートされているかを確認
+	protocolVersion := initializeResult.ProtocolVersion
+	for i := 0; i < len(schema.SUPPORTED_PROTOCOL_VERSIONS); i++ {
+		if protocolVersion == schema.SUPPORTED_PROTOCOL_VERSIONS[i] {
+			break
+		}
+		if i == len(schema.SUPPORTED_PROTOCOL_VERSIONS)-1 {
+			if err := c.Close(); err != nil {
+				fmt.Println("Failed to close protocol after connection error:", err)
+			}
+			return fmt.Errorf("server's protocol version is not supported: %s", protocolVersion)
+		}
+	}
+	c.serverCapabilities = initializeResult.Capabilities
+	c.serverVersion = initializeResult.ServerInfo
+	c.instruction = initializeResult.Instructions
+	if err := c.Notificate(&schema.InitializeNotificationSchema{
+		MethodName: "notifications/initialized",
+	}); err != nil {
+		if err := c.Close(); err != nil {
+			fmt.Println("Failed to close protocol after connection error:", err)
+		}
+		return fmt.Errorf("failed to send initialized notification: %w", err)
 	}
 	return nil
 }
