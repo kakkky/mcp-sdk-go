@@ -1,7 +1,5 @@
 package schema
 
-const JSON_RPC_VERSION = "2.0"
-
 // Request , Notification, Response の抽象型。
 // JsonRpcMessage()メソッド自体は意味をなさない。
 type JsonRpcMessage interface {
