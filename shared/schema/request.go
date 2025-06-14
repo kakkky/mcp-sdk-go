@@ -111,6 +111,36 @@ func (r *ReadResourceRequestSchema) Params() any {
 	return r.ParamsData
 }
 
+type SubscribeRequestSchema struct {
+	MethodName string                 `json:"method"`
+	ParamsData SubscribeRequestParams `json:"params"`
+}
+type SubscribeRequestParams struct {
+	Uri string `json:"uri"`
+}
+
+func (r *SubscribeRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *SubscribeRequestSchema) Params() any {
+	return r.ParamsData
+}
+
+type UnsubscribeRequestSchema struct {
+	MethodName string                   `json:"method"`
+	ParamsData UnsubscribeRequestParams `json:"params"`
+}
+type UnsubscribeRequestParams struct {
+	Uri string `json:"uri"`
+}
+
+func (r *UnsubscribeRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *UnsubscribeRequestSchema) Params() any {
+	return r.ParamsData
+}
+
 type CompleteRequestSchema struct {
 	MethodName string                `json:"method"`
 	ParamsData CompleteRequestParams `json:"params"`
