@@ -92,3 +92,14 @@ func (n *PromptListChangedNotificationSchema) Method() string {
 func (n *PromptListChangedNotificationSchema) Params() any {
 	return nil
 }
+
+type RootsListChangedNotificationSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (n *RootsListChangedNotificationSchema) Method() string {
+	return n.MethodName
+}
+func (n *RootsListChangedNotificationSchema) Params() any {
+	return nil
+}

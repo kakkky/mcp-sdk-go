@@ -200,3 +200,30 @@ func (r *GetPromptRequestSchema) Method() string {
 func (r *GetPromptRequestSchema) Params() any {
 	return r.ParamsData
 }
+
+type ListToolsRequestSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (r *ListToolsRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *ListToolsRequestSchema) Params() any {
+	return nil
+}
+
+type CallToolRequestSchema struct {
+	MethodName string                `json:"method"`
+	ParamsData CallToolRequestParams `json:"params"`
+}
+type CallToolRequestParams struct {
+	Name      string `json:"name"`
+	Arguments any    `json:"arguments,omitempty"` // 変数名と値のマップ
+}
+
+func (r *CallToolRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *CallToolRequestSchema) Params() any {
+	return r.ParamsData
+}

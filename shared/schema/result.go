@@ -88,3 +88,28 @@ type ListPromptsResultSchema struct {
 func (r *ListPromptsResultSchema) Result() any {
 	return r
 }
+
+type ListToolsResultSchema struct {
+	Tools []ToolSchema `json:"tools"`
+}
+
+func (r *ListToolsResultSchema) Result() any {
+	return r
+}
+
+type CallToolResultSchema struct {
+	Content                           []ToolContentSchema `json:"content"`
+	IsError                           bool                `json:"isError,omitempty"`
+	CompatibilityCallToolResultSchema                     // Deprecated: use Content instead
+
+}
+
+// TextContentSchema | ImageContentSchema | AudioContentSchema | EmbeddedResourceSchema
+type ToolContentSchema interface {
+	Content() any // Returns the tool result content, used for type assertion
+}
+
+// CallToolResultSchema extended with backwards compatibility to protocol version 2024-10-07.
+type CompatibilityCallToolResultSchema struct {
+	ToolResult any `json:"toolResult,omitempty"` // Deprecated: use ToolResults instead
+}
