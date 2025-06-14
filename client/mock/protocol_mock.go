@@ -146,6 +146,18 @@ func (mr *MockProtocolMockRecorder) SetValidateNotificationCapability(validator 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetValidateNotificationCapability", reflect.TypeOf((*MockProtocol)(nil).SetValidateNotificationCapability), validator)
 }
 
+// SetValidateRequestHandlerCapability mocks base method.
+func (m *MockProtocol) SetValidateRequestHandlerCapability(validatror func(string) error) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetValidateRequestHandlerCapability", validatror)
+}
+
+// SetValidateRequestHandlerCapability indicates an expected call of SetValidateRequestHandlerCapability.
+func (mr *MockProtocolMockRecorder) SetValidateRequestHandlerCapability(validatror any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetValidateRequestHandlerCapability", reflect.TypeOf((*MockProtocol)(nil).SetValidateRequestHandlerCapability), validatror)
+}
+
 // Transport mocks base method.
 func (m *MockProtocol) Transport() protocol.Transport {
 	m.ctrl.T.Helper()
