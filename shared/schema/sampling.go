@@ -9,35 +9,6 @@ type ContentSchema interface {
 	TextContentSchema | ImageContentSchema | AudioContentSchema
 }
 
-type TextContentSchema struct {
-	Type string `json:"type"` // text
-	Text string `json:"text"`
-}
-
-func (t *TextContentSchema) Content() any {
-	return t
-}
-
-type ImageContentSchema struct {
-	Type     string `json:"type"` // image
-	Data     string `json:"data"` // base64 encoded image data
-	MimeType string `json:"mimeType"`
-}
-
-func (i *ImageContentSchema) Content() any {
-	return i
-}
-
-type AudioContentSchema struct {
-	Type     string `json:"type"` // audio
-	Data     string `json:"data"` // base64 encoded audio data
-	MimeType string `json:"mimeType"`
-}
-
-func (a *AudioContentSchema) Content() any {
-	return a
-}
-
 type ModelPreferencesSchema struct {
 	Hints                []*ModelHintsSchema `json:"hints,omitempty"`
 	CostPriority         *int                `json:"costPriority,omitempty"`         // 0 <= costPriority <= 1

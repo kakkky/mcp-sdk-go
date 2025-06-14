@@ -48,13 +48,3 @@ func (r *BlobResourceContentsSchema) MimeType() string {
 func (r *BlobResourceContentsSchema) Content() string {
 	return r.ContentData
 }
-
-// The contents of a resource, embedded into a prompt or tool call result.
-type EmbeddedResourceSchema struct {
-	Type     string                `json:"type"` // "resource"
-	Resource ResourceContentSchema `json:"resource"`
-}
-
-func (e *EmbeddedResourceSchema) Content() any {
-	return e
-}
