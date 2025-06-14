@@ -167,3 +167,92 @@ func (c *Client) Implementation() schema.Implementation {
 func (c *Client) Instructions() string {
 	return c.instruction
 }
+
+// 基本的な通信メソッド
+
+func (c *Client) Ping() (schema.Result, error) {
+	return c.Request(&schema.PingRequestSchema{
+		MethodName: "ping",
+	}, &schema.EmptyResultSchema{})
+}
+
+func (c *Client) Complete(params schema.CompleteRequestParams) (schema.Result, error) {
+	return c.Request(&schema.CompleteRequestSchema{
+		MethodName: "completion/complete",
+		ParamsData: params,
+	}, &schema.CompleteResultSchema{})
+}
+
+func (c *Client) SetLoggingLevel(level schema.LoggingLevelSchema) (schema.Result, error) {
+	return c.Request(&schema.SetLevelRequestSchema{
+		MethodName: "logging/setLevel",
+		ParamsData: schema.SetLoggingLevelRequestParams{
+			Level: level,
+		},
+	}, &schema.EmptyResultSchema{})
+}
+
+func (c *Client) GetPrompt(params schema.GetPromptRequestParams) (schema.Result, error) {
+	return c.Request(&schema.GetPromptRequestSchema{
+		MethodName: "prompts/get",
+		ParamsData: params,
+	}, &schema.GetPromptResultSchema{})
+}
+
+func (c *Client) ListPrompts() (schema.Result, error) {
+	return c.Request(&schema.ListPromptsRequestSchema{
+		MethodName: "prompts/list",
+	}, &schema.ListPromptsResultSchema{})
+}
+
+func (c *Client) ListResources() (schema.Result, error) {
+	return c.Request(&schema.ListResourceRequestSchema{
+		MethodName: "resources/list",
+	}, &schema.ListResourcesResultSchema{})
+}
+
+func (c *Client) ListResourceTemplates() (schema.Result, error) {
+	return c.Request(&schema.ListResourceTemplatesRequestSchema{
+		MethodName: "resources/templates/list",
+	}, &schema.ListResourceTemplatesResultSchema{})
+}
+
+func (c *Client) ReadResource(params schema.ReadResourceRequestParams) (schema.Result, error) {
+	return c.Request(&schema.ReadResourceRequestSchema{
+		MethodName: "resources/read",
+		ParamsData: params,
+	}, &schema.ReadResourceResultSchema{})
+}
+
+func (c *Client) SubscribeResource(params schema.SubscribeRequestParams) (schema.Result, error) {
+	return c.Request(&schema.SubscribeRequestSchema{
+		MethodName: "resources/subscribe",
+		ParamsData: params,
+	}, &schema.EmptyResultSchema{})
+}
+
+func (c *Client) UnsubscribeResource(params schema.UnsubscribeRequestParams) (schema.Result, error) {
+	return c.Request(&schema.UnsubscribeRequestSchema{
+		MethodName: "resources/unsubscribe",
+		ParamsData: params,
+	}, &schema.EmptyResultSchema{})
+}
+
+func (c *Client) CallTool(params schema.CallToolRequestParams) (schema.Result, error) {
+	return c.Request(&schema.CallToolRequestSchema{
+		MethodName: "tools/call",
+		ParamsData: params,
+	}, &schema.CallToolResultSchema{})
+}
+
+func (c *Client) ListTools() (schema.Result, error) {
+	return c.Request(&schema.ListToolsRequestSchema{
+		MethodName: "tools/list",
+	}, &schema.ListToolsResultSchema{})
+}
+
+func (c *Client) SendRootsListChanged() error {
+	return c.Notificate(&schema.RootsListChangedNotificationSchema{
+		MethodName: "roots/listChanged",
+	})
+}
