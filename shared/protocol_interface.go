@@ -14,7 +14,7 @@ type Protocol interface {
 
 	SetValidateCapabilityForMethod(validator func(method string) error)
 	SetValidateNotificationCapability(validator func(method string) error)
-
+	SetValidateRequestHandlerCapability(validatror func(method string) error)
 	Transport() protocol.Transport
 
 	Connect(transport protocol.Transport) error
