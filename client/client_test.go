@@ -1,11 +1,15 @@
 package client
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/kakkky/mcp-sdk-go/mcp-server/server/mock"
+	"github.com/google/go-cmp/cmp"
+	"github.com/kakkky/mcp-sdk-go/client/mock"
+	"github.com/kakkky/mcp-sdk-go/shared/protocol"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
+	"go.uber.org/mock/gomock"
 )
 
 func TestClient_ValidateCapabilities(t *testing.T) {
@@ -151,39 +155,136 @@ func TestClient_ValidateCapabilities(t *testing.T) {
 
 func TestClient_Connect(t *testing.T) {
 	tests := []struct {
-		name                           string
-		mockFn                         func(*mock.MockProtocol)
-		expectedInitializeResult       schema.InitializeResultSchema
-		expectedInitializeNotification schema.InitializeNotificationSchema
-		isExpectedErr                  bool
+		name                       string
+		mockFn                     func(*mock.MockProtocol)
+		expectedServerCapabilities schema.ServerCapabilities
+		isExpectedErr              bool
 	}{
-		{},
+		{
+			name: "normal: successful connection",
+			mockFn: func(mp *mock.MockProtocol) {
+				mp.EXPECT().
+					Connect(gomock.Any()).
+					Do(
+						func(protocol.Transport) {
+							// 擬似的にトランスポートの確率を通知
+							TransportStartedNotify <- struct{}{}
+
+						},
+					).Return(nil)
+				mp.EXPECT().
+					Request(
+						gomock.Any(),
+						gomock.Any(),
+					).
+					Return(
+						&schema.InitializeResultSchema{
+							ProtocolVersion: schema.LATEST_PROTOCOL_VERSION,
+							Capabilities: schema.ServerCapabilities{
+								Tools: &schema.Tools{
+									ListChanged: true,
+								},
+							},
+							ServerInfo: schema.Implementation{
+								Name:    "test-server",
+								Version: "1.0.0",
+							},
+						},
+						nil,
+					)
+				mp.EXPECT().
+					Notificate(
+						gomock.Any(),
+					).Return(nil)
+
+			},
+			expectedServerCapabilities: schema.ServerCapabilities{
+				Tools: &schema.Tools{
+					ListChanged: true,
+				},
+			},
+		},
+		{
+			name: "semi normal: unsupported protocol version",
+			mockFn: func(mp *mock.MockProtocol) {
+				mp.EXPECT().
+					Connect(gomock.Any()).
+					Do(
+						func(protocol.Transport) {
+							// 擬似的にトランスポートの確率を通知
+							TransportStartedNotify <- struct{}{}
+						},
+					).Return(nil)
+				mp.EXPECT().
+					Request(
+						gomock.Any(),
+						gomock.Any(),
+					).
+					Return(
+						&schema.InitializeResultSchema{
+							ProtocolVersion: "2021-01-01", // サポートされていないバージョン
+							Capabilities: schema.ServerCapabilities{
+								Tools: &schema.Tools{
+									ListChanged: true,
+								},
+							},
+							ServerInfo: schema.Implementation{
+								Name:    "test-server",
+								Version: "1.0.0",
+							},
+						},
+						nil,
+					)
+				mp.EXPECT().
+					Close().Return(nil)
+			},
+			isExpectedErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// ctrl := gomock.NewController(t)
-			// defer ctrl.Finish()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-			// mockProtocol := mock.NewMockProtocol(ctrl)
-			// if tt.mockFn != nil {
-			// 	tt.mockFn(mockProtocol)
-			// }
+			mockProtocol := mock.NewMockProtocol(ctrl)
+			if tt.mockFn != nil {
+				tt.mockFn(mockProtocol)
+			}
 
-			// sut := NewClient(
-			// 	schema.Implementation{Name: "test-client", Version: "1.0.0"},
-			// 	&ClientOptions{
-			// 		Capabilities: schema.ClientCapabilities{},
-			// 	},
-			// )
-			// sut.Protocol = mockProtocol
-			// // 以下の変数にリクエスト等書き込むようにする
-			// var gotRequest *schema.InitializeRequestSchema
-			// var gotNotification *schema.InitializeNotificationSchema
-			// err := sut.Connect(mockProtocol.Transport())
-			// if (err != nil) != tt.isExpectedErr {
-			// 	t.Errorf("Connect() error = %v, isExpectedErr %v", err, tt.isExpectedErr)
-			// 	return
-			// }
+			sut := NewClient(
+				schema.Implementation{Name: "test-client", Version: "1.0.0"},
+				&ClientOptions{
+					Capabilities: schema.ClientCapabilities{},
+				},
+			)
+			sut.Protocol = mockProtocol
+
+			mockTransport := mock.NewMockTransport(ctrl)
+
+			errCh := make(chan error)
+			go func() {
+				err := sut.Connect(mockTransport)
+				if err != nil {
+					fmt.Println("Connect() error:", err)
+					errCh <- err
+					return
+				}
+			}()
+			select {
+			case err := <-errCh:
+				if (err != nil) != tt.isExpectedErr {
+					t.Errorf("Connect() error = %v, isExpectedErr %v", err, tt.isExpectedErr)
+					return
+				}
+				if tt.isExpectedErr {
+					return
+				}
+			case <-OpetationPhaseStartNotify:
+				// serverCapabilitiesを期待通りに設定されているか
+				if diff := cmp.Diff(tt.expectedServerCapabilities, sut.serverCapabilities, cmp.AllowUnexported(Client{})); diff != "" {
+					t.Errorf("Connect() client mismatch (-want +got):\n%s", diff)
+				}
+			}
 
 		})
 	}

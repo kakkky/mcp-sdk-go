@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/kakkky/mcp-sdk-go/shared"
 	"github.com/kakkky/mcp-sdk-go/shared/protocol"
@@ -80,20 +81,21 @@ func (c *Client) ValidateCapabilities(capability any, method string) error {
 // Transport側で接続が確立されたことを通知するためのチャネル
 var TransportStartedNotify = make(chan struct{}, 1)
 
+// Initialization phaseが完了し、Operation phaseを開始するための通知チャネル
+var OpetationPhaseStartNotify = make(chan struct{}, 1)
+
 func (c *Client) Connect(transport protocol.Transport) error {
 	if transport == nil {
 		return errors.New("transport is required")
 	}
 	// transportに接続
-	go func() error {
-		fmt.Println("Connecting to transport...")
+	go func() {
 		if err := c.Protocol.Connect(transport); err != nil {
 			if err := c.Close(); err != nil {
-				fmt.Println("Failed to close protocol after connection error:", err)
+				log.Fatalln("Failed to close protocol after connection error:", err)
 			}
-			return fmt.Errorf("failed to connect: %w", err)
+			log.Fatalf("failed to connect to transport: %v", err)
 		}
-		return nil
 	}()
 	// transportへの接続が確立後に後続のinitialiation phaseを開始する
 	<-TransportStartedNotify
@@ -136,6 +138,7 @@ func (c *Client) Connect(transport protocol.Transport) error {
 			if err := c.Close(); err != nil {
 				fmt.Println("Failed to close protocol after connection error:", err)
 			}
+			fmt.Println("Server's protocol version is not supported:", protocolVersion)
 			return fmt.Errorf("server's protocol version is not supported: %s", protocolVersion)
 		}
 	}
@@ -150,5 +153,6 @@ func (c *Client) Connect(transport protocol.Transport) error {
 		}
 		return fmt.Errorf("failed to send initialized notification: %w", err)
 	}
+	OpetationPhaseStartNotify <- struct{}{}
 	return nil
 }
