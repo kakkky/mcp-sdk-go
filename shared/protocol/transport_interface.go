@@ -3,6 +3,7 @@ package protocol
 import "github.com/kakkky/mcp-sdk-go/shared/schema"
 
 //go:generate mockgen -source=./transport_interface.go -destination=./mock/transport_mock.go -package=mock
+//go:generate mockgen -source=./transport_interface.go -destination=../../client/mock/transport_mock.go -package=mock
 type Transport interface {
 	Start() error
 	Close() error
