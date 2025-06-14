@@ -167,7 +167,7 @@ func TestClient_Connect(t *testing.T) {
 					Connect(gomock.Any()).
 					Do(
 						func(protocol.Transport) {
-							// 擬似的にトランスポートの確率を通知
+							// 擬似的にトランスポートの接続確立を通知
 							TransportStartedNotify <- struct{}{}
 
 						},
@@ -211,7 +211,7 @@ func TestClient_Connect(t *testing.T) {
 					Connect(gomock.Any()).
 					Do(
 						func(protocol.Transport) {
-							// 擬似的にトランスポートの確率を通知
+							// 擬似的にトランスポートの接続確立を通知
 							TransportStartedNotify <- struct{}{}
 						},
 					).Return(nil)

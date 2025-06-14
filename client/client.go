@@ -37,7 +37,9 @@ func NewClient(clientInfo schema.Implementation, options *ClientOptions) *Client
 		c.capabilities = options.Capabilities
 		c.Protocol = protocol.NewProtocol(&options.ProtocolOptions)
 	}
-
+	c.SetValidateCapabilityForMethod(c.validateCapabilityForMethod)
+	c.SetValidateNotificationCapability(c.validateNotificationCapability)
+	c.SetValidateRequestHandlerCapability(c.validateRequestHandlerCapability)
 	return c
 }
 
@@ -138,7 +140,6 @@ func (c *Client) Connect(transport protocol.Transport) error {
 			if err := c.Close(); err != nil {
 				fmt.Println("Failed to close protocol after connection error:", err)
 			}
-			fmt.Println("Server's protocol version is not supported:", protocolVersion)
 			return fmt.Errorf("server's protocol version is not supported: %s", protocolVersion)
 		}
 	}
@@ -155,4 +156,14 @@ func (c *Client) Connect(transport protocol.Transport) error {
 	}
 	OpetationPhaseStartNotify <- struct{}{}
 	return nil
+}
+
+func (c *Client) ServerCapabilities() schema.ServerCapabilities {
+	return c.serverCapabilities
+}
+func (c *Client) Implementation() schema.Implementation {
+	return c.serverVersion
+}
+func (c *Client) Instructions() string {
+	return c.instruction
 }
