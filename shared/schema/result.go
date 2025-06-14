@@ -71,3 +71,20 @@ type CompleteResultSchema struct {
 func (r *CompleteResultSchema) Result() any {
 	return r
 }
+
+type GetPromptResultSchema struct {
+	Description string                `json:"description,omitempty"`
+	Messages    []PromptMessageSchema `json:"messages"`
+}
+
+func (r *GetPromptResultSchema) Result() any {
+	return r
+}
+
+type ListPromptsResultSchema struct {
+	Prompts []PromptSchema `json:"prompts"`
+}
+
+func (r *ListPromptsResultSchema) Result() any {
+	return r
+}

@@ -127,3 +127,46 @@ func (r *CompleteRequestSchema) Method() string {
 func (r *CompleteRequestSchema) Params() any {
 	return r.ParamsData
 }
+
+type SetLevelRequestSchema struct {
+	MethodName string                       `json:"method"`
+	ParamsData SetLoggingLevelRequestParams `json:"params"`
+}
+
+func (r *SetLevelRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *SetLevelRequestSchema) Params() any {
+	return r.ParamsData
+}
+
+type SetLoggingLevelRequestParams struct {
+	Level LoggingLevelSchema `json:"level"`
+}
+
+type ListPromptsRequestSchema struct {
+	MethodName string `json:"method"`
+}
+
+func (r *ListPromptsRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *ListPromptsRequestSchema) Params() any {
+	return nil
+}
+
+type GetPromptRequestSchema struct {
+	MethodName string                 `json:"method"`
+	ParamsData GetPromptRequestParams `json:"params"`
+}
+type GetPromptRequestParams struct {
+	Name      string            `json:"name"`
+	Arguments map[string]string `json:"arguments,omitempty"` // 変数名と値のマップ
+}
+
+func (r *GetPromptRequestSchema) Method() string {
+	return r.MethodName
+}
+func (r *GetPromptRequestSchema) Params() any {
+	return r.ParamsData
+}
