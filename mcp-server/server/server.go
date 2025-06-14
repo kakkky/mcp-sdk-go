@@ -50,6 +50,7 @@ func NewServer(serverInfo schema.Implementation, options *ServerOptions) *Server
 
 	s.SetValidateCapabilityForMethod(s.validateCapabilityForMethod)
 	s.SetValidateNotificationCapability(s.validateNotificationCapability)
+	s.SetValidateRequestHandlerCapability(s.validateRequestHandlerCapability)
 
 	return s
 }
