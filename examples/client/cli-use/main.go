@@ -41,10 +41,10 @@ func main() {
 		}
 	}()
 	<-client.OperationPhaseStartNotify
-
+	fmt.Println("Initialization complete 🎉 Client is ready to send commands.")
 	// コマンド入力のためのループ
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print(">")
+	fmt.Print("Enter method :  ")
 	for scanner.Scan() {
 		switch scanner.Text() {
 		case "ping":
@@ -52,15 +52,20 @@ func main() {
 			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println("<-", result)
+			fmt.Println("Ping", result)
 		case "resources/list":
 			result, err := c.ListResources()
 			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println("<-", result)
+			resourceList := result.(*schema.ListResourcesResultSchema)
+			var resources []string
+			for _, resource := range resourceList.Resources {
+				resources = append(resources, fmt.Sprintf("Name: %s, URI: %s ,Metadata:%v", resource.Name, resource.Uri, *resource.ResourceMetadata))
+			}
+			fmt.Println("Resources:", resources)
 		}
-		fmt.Print(">")
+		fmt.Print("Enter method :  ")
 	}
 
 }
