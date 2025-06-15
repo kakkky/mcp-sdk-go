@@ -23,7 +23,7 @@ func NewUriTemplate(template string) (*UriTemplate, error) {
 }
 
 func (u *UriTemplate) ToString() string {
-	return u.UriTemplate.String()
+	return u.String()
 }
 
 // テンプレートの展開
@@ -33,7 +33,7 @@ func (u *UriTemplate) Expand(value map[string]any) (string, error) {
 
 // テンプレート内で使用されている全ての変数名を取得
 func (u *UriTemplate) VariableNames() []string {
-	return u.UriTemplate.Names()
+	return u.Names()
 }
 
 func (u *UriTemplate) Match(uri string) (map[string]any, error) {

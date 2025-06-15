@@ -41,7 +41,7 @@ func NewProtocol(options *ProtocolOptions) *Protocol {
 	p.onClose = func() {
 		responseHandlers := p.handlers.responseHandlers
 		for _, handler := range responseHandlers {
-			handler(nil, mcperr.NewMcpErr(mcperr.CONNECTION_CLOSED, "connection closed", nil))
+			_, _ = handler(nil, mcperr.NewMcpErr(mcperr.CONNECTION_CLOSED, "connection closed", nil))
 		}
 		p.handlers.responseHandlers = make(map[int]responseHandler)
 		p.transport = nil

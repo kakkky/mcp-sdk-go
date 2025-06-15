@@ -2,6 +2,6 @@ package mcpserver
 
 func (m *McpServer) sendResourceListChanged() {
 	if m.isConnected() {
-		m.Server.SendResourceListChanged()
+		_ = m.Server.SendResourceListChanged()
 	}
 }

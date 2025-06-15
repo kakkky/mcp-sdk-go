@@ -105,12 +105,14 @@ func (m *McpServer) Resource(
 			if updates.Enabled != nil {
 				m.registeredResources[*uriPtr].enabled = *updates.Enabled
 			}
-			m.Server.SendResourceListChanged()
+			_ = m.Server.SendResourceListChanged()
 		},
 	}
 	m.registeredResources[*uriPtr] = &registeredResource
-	m.setResourceRequestHandlers()
-	m.sendResourceListChanged()
+
+	_ = m.setResourceRequestHandlers()
+
+	_ = m.Server.SendResourceListChanged
 	return &registeredResource, nil
 }
 
@@ -179,11 +181,11 @@ func (m *McpServer) ResourceTemplate(
 			if updates.Enabled != nil {
 				m.registeredResourceTemplates[*namePtr].enabled = *updates.Enabled
 			}
-			m.Server.SendResourceListChanged()
+			_ = m.Server.SendResourceListChanged()
 		},
 	}
 	m.registeredResourceTemplates[*namePtr] = &registeredResourceTemplate
-	m.setResourceRequestHandlers()
+	_ = m.setResourceRequestHandlers()
 	m.sendResourceListChanged()
 	return &registeredResourceTemplate, nil
 }

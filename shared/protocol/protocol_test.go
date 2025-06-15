@@ -146,9 +146,11 @@ func TestProtocol_Request(t *testing.T) {
 			defer func() {
 				if err := server.Close(); err != nil {
 					t.Errorf("Close() error = %v", err)
+					return
 				}
 				if err := client.Close(); err != nil {
 					t.Errorf("Close() error = %v", err)
+					return
 				}
 			}()
 			// リクエストを受け取ったら、レスポンスを返すことを確認する
@@ -216,12 +218,21 @@ func TestProtocol_Notificate(t *testing.T) {
 			})
 
 			// 通信を開始
-			server.Connect(serverTransport)
-			client.Connect(clientTransport)
+			if err := server.Connect(serverTransport); err != nil {
+				t.Errorf("サーバー接続に失敗: %v", err)
+			}
+			if err := client.Connect(clientTransport); err != nil {
+				t.Errorf("クライアント接続に失敗: %v", err)
+				return
+			}
 			// クリーンアップ
 			defer func() {
-				server.Close()
-				client.Close()
+				if err := server.Close(); err != nil {
+					t.Errorf("サーバークローズに失敗: %v", err)
+				}
+				if err := client.Close(); err != nil {
+					t.Errorf("クライアントクローズに失敗: %v", err)
+				}
 			}()
 
 			// 通知を送信
@@ -258,9 +269,13 @@ func TestProtocol_Close(t *testing.T) {
 				make(chan []byte, 1),
 			)
 			protocol.SetOnClose(tt.onClose)
-			protocol.Connect(serverTransport)
+			if err := protocol.Connect(serverTransport); err != nil {
+				t.Errorf("接続に失敗: %v", err)
+			}
 
-			protocol.Close()
+			if err := protocol.Close(); err != nil {
+				t.Errorf("クローズに失敗: %v", err)
+			}
 			if protocol.Transport() != nil {
 				t.Errorf("Expected transport to be nil after close, but it was not")
 			}

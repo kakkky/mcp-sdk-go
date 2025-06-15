@@ -33,11 +33,11 @@ func marshalRequest(req schema.JsonRpcRequest) ([]byte, error) {
 	jsonObj := requestJSON{
 		Jsonrpc: req.Jsonrpc,
 		Id:      req.Id,
-		Method:  req.Request.Method(),
+		Method:  req.Method(),
 	}
 
-	if req.Request.Params() != nil {
-		jsonObj.Params = req.Request.Params()
+	if req.Params() != nil {
+		jsonObj.Params = req.Params()
 	}
 
 	return json.Marshal(jsonObj)
@@ -52,11 +52,11 @@ func marshalNotification(notif schema.JsonRpcNotification) ([]byte, error) {
 
 	jsonObj := notificationJSON{
 		Jsonrpc: notif.Jsonrpc,
-		Method:  notif.Notification.Method(),
+		Method:  notif.Method(),
 	}
 
-	if notif.Notification.Params() != nil {
-		jsonObj.Params = notif.Notification.Params()
+	if notif.Params() != nil {
+		jsonObj.Params = notif.Params()
 	}
 
 	return json.Marshal(jsonObj)

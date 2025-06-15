@@ -19,7 +19,7 @@ func (m *McpServer) setResourceRequestHandlers() error {
 			return err
 		}
 	}
-	m.Server.RegisterCapabilities(schema.ServerCapabilities{
+	_ = m.Server.RegisterCapabilities(schema.ServerCapabilities{
 		Resources: &schema.Resources{
 			ListChanged: true,
 		},
@@ -112,7 +112,7 @@ func (m *McpServer) setResourceRequestHandlers() error {
 		return &result, nil
 	})
 
-	m.setCompletionRequestHandlers()
+	_ = m.setCompletionRequestHandlers()
 
 	m.isResourceHandlersInitialized = true
 	return nil

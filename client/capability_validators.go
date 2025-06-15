@@ -22,7 +22,8 @@ func (s *Client) validateCapabilityForMethod(method string) error {
 		if s.serverCapabilities.Resources == nil {
 			return fmt.Errorf("client does not support resources (required for %s)", method)
 		}
-		if (method == "resources/subscribe") && !s.serverCapabilities.Resources.Subscribe {
+		resources := s.serverCapabilities.Resources
+		if (method == "resources/subscribe") && !resources.Subscribe {
 			return fmt.Errorf("client does not support subscribing to resources (required for %s)", method)
 		}
 	case "tools/call",
@@ -46,7 +47,8 @@ func (s *Client) validateCapabilityForMethod(method string) error {
 func (s *Client) validateNotificationCapability(method string) error {
 	switch method {
 	case "notifications/roots/list_changed":
-		if !s.capabilities.Roots.ListChanged {
+		roots := s.capabilities.Roots
+		if !roots.ListChanged {
 			return fmt.Errorf("Client does not support notifying about roots (required for %s)", method)
 		}
 	case "notifications/initialized":

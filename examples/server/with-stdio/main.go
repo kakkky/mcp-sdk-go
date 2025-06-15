@@ -23,8 +23,9 @@ func main() {
 				Completion: &schema.Completion{},
 			},
 		})
+
 	// Resourceを登録
-	mcpServer.Resource(
+	if _, err := mcpServer.Resource(
 		"example",
 		"file://sample/uri",
 		&schema.ResourceMetadata{
@@ -39,7 +40,9 @@ func main() {
 					ContentData:  "This is the content of the example resource.",
 				},
 			}}, nil
-		})
+		}); err != nil {
+		panic(err)
+	}
 
 	// Resource Templateを登録
 	template, err := mcpserver.NewResourceTemplate("file://sample/{variable}", &mcpserver.ResourceTemplateCallbacks{
@@ -67,7 +70,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	mcpServer.ResourceTemplate(
+
+	if _, err := mcpServer.ResourceTemplate(
 		"example-template",
 		template,
 		&schema.ResourceMetadata{
@@ -95,10 +99,12 @@ func main() {
 			}
 			return schema.ReadResourceResultSchema{}, nil
 		},
-	)
+	); err != nil {
+		panic(err)
+	}
+
 	transport := transport.NewStdioServerTransport()
-	err = mcpServer.Connect(transport)
-	if err != nil {
+	if err := mcpServer.Connect(transport); err != nil {
 		panic(err)
 	}
 }

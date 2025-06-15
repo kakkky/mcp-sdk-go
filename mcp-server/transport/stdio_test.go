@@ -39,10 +39,15 @@ func TestStdioServeTransport(t *testing.T) {
 			defer func() {
 				os.Stdout = originStdout
 				os.Stdin = originStdin
-				stdinR.Close()
-				stdoutR.Close()
-				stdinW.Close()
-				stdoutW.Close()
+				if err := stdinW.Close(); err != nil {
+					t.Errorf("Failed to close stdinW: %v", err)
+				}
+				if err := stdinR.Close(); err != nil {
+					t.Errorf("Failed to close stdinR: %v", err)
+				}
+				if err := stdoutR.Close(); err != nil {
+					t.Errorf("Failed to close stdoutR: %v", err)
+				}
 			}()
 
 			sut := NewStdioServerTransport()
@@ -52,7 +57,9 @@ func TestStdioServeTransport(t *testing.T) {
 			// メッセージ受信時のコールバックを設定
 			// ここでは、受信したメッセージをそのまま送信する
 			sut.SetOnReceiveMessage(func(jrm schema.JsonRpcMessage) {
-				sut.SendMessage(jrm)
+				if err := sut.SendMessage(jrm); err != nil {
+					t.Errorf("Failed to send message: %v", err)
+				}
 				sendMsgDoneChan <- struct{}{}
 			})
 
@@ -73,7 +80,9 @@ func TestStdioServeTransport(t *testing.T) {
 
 			// Transportがメッセージを返すまで待機
 			<-sendMsgDoneChan
-			stdoutW.Close() // 標準出力の書き込みを終了
+			if err := stdoutW.Close(); err != nil { // 標準出力の書き込みを終了
+				t.Fatalf("Failed to close stdoutW: %v", err)
+			}
 
 			// 標準出力を読み取る
 			stdoutResp, err := io.ReadAll(stdoutR)
@@ -87,7 +96,9 @@ func TestStdioServeTransport(t *testing.T) {
 
 			// シグナルを送信してStart()を終了させる
 			proc, _ := os.FindProcess(os.Getpid())
-			proc.Signal(os.Interrupt)
+			if err := proc.Signal(os.Interrupt); err != nil {
+				t.Errorf("Failed to send interrupt signal: %v", err)
+			}
 		})
 	}
 }

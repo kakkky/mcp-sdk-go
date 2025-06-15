@@ -124,7 +124,12 @@ func (s *StdioClientTransport) Start() error {
 			return err
 		}
 		go func() {
-			defer stderrPipe.Close()
+			defer func() {
+				err := stderrPipe.Close()
+				if err != nil {
+					fmt.Println("Failed to close stderr pipe:", err)
+				}
+			}()
 			for {
 				data := make([]byte, 1024)
 				n, err := stderrPipe.Read(data)
