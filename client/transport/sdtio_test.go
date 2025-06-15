@@ -79,6 +79,7 @@ func TestStdioClientTransport(t *testing.T) {
 			// トランスポート開始
 			go func() {
 				if err := transport.Start(); err != nil {
+					t.Errorf("failed to start transport: %v", err)
 				}
 			}()
 			<-client.TransportStartedNotify
