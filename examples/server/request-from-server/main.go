@@ -1,6 +1,8 @@
 package main
 
 import (
+	"sync"
+
 	mcpserver "github.com/kakkky/mcp-sdk-go/mcp-server"
 	"github.com/kakkky/mcp-sdk-go/mcp-server/server"
 	"github.com/kakkky/mcp-sdk-go/mcp-server/transport"
@@ -19,7 +21,10 @@ func main() {
 			},
 		})
 	transport := transport.NewStdioServerTransport()
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		err := mcpServer.Connect(transport)
 		if err != nil {
 			panic(err)
@@ -34,4 +39,5 @@ func main() {
 	); err != nil {
 		panic(err)
 	}
+	wg.Wait()
 }
