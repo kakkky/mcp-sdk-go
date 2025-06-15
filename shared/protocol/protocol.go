@@ -97,7 +97,7 @@ func (p *Protocol) Request(request schema.Request, resultSchema any) (schema.Res
 		return nil, fmt.Errorf("not connected")
 	}
 
-	if p.options != nil && p.options.enforceStrictCapabilities && p.capabilityValidators.validateCapabilityForMethod != nil {
+	if p.options != nil && p.options.EnforceStrictCapabilities && p.capabilityValidators.validateCapabilityForMethod != nil {
 		if err := p.capabilityValidators.validateCapabilityForMethod(request.Method()); err != nil {
 			return nil, err
 		}

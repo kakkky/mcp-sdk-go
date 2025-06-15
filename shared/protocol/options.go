@@ -1,5 +1,5 @@
 package protocol
 
 type ProtocolOptions struct {
-	enforceStrictCapabilities bool
+	EnforceStrictCapabilities bool
 }
