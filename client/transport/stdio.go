@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"runtime"
@@ -161,10 +162,10 @@ func (s *StdioClientTransport) SendMessage(message schema.JsonRpcMessage) error 
 		return fmt.Errorf("failed to marshal message: %w", err)
 	}
 	// 改行を追加して標準入力に書き込む
-	fmt.Println("Client:", string(data))
+	log.Println(" Client : ", string(data))
 	_, err = s.stdinPipe.Write(append(data, '\n'))
 	if err != nil {
-		return fmt.Errorf("client failed to write message to stdout: %w", err)
+		return fmt.Errorf("client failed to write message to stdin: %w", err)
 	}
 	return nil
 }
@@ -237,7 +238,7 @@ func (s *StdioClientTransport) onData(chunk []byte) error {
 	if err := s.readBuffer.Append(chunk); err != nil {
 		return err
 	}
-	fmt.Println("Server:", string(chunk))
+	log.Println(" Server :  ", string(chunk))
 	s.processReadBuffer()
 	return nil
 }
