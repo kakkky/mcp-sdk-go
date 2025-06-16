@@ -84,6 +84,19 @@ func unmarshalRequest(message *Message) (schema.Request, error) {
 			return nil, fmt.Errorf("unknown type: %s", ref.Type)
 		}
 		return request, nil
+	case "roots/list":
+		return &schema.ListRootsRequestSchema{
+			MethodName: message.Method,
+		}, nil
+	case "logging/setLevel":
+		params := &schema.SetLoggingLevelRequestParams{}
+		if err := json.Unmarshal(message.Params, &params); err != nil {
+			return nil, err
+		}
+		return &schema.SetLevelRequestSchema{
+			MethodName: message.Method,
+			ParamsData: *params,
+		}, nil
 	}
 	return nil, fmt.Errorf("unknown method: %s", message.Method)
 }
