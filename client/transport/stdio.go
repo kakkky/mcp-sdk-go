@@ -194,12 +194,6 @@ func (s *StdioClientTransport) Stderr() <-chan error {
 
 }
 
-func (s *StdioClientTransport) OnReceiveMessage(message schema.JsonRpcMessage) {
-	if s.onReceiveMessage != nil {
-		s.onReceiveMessage(message)
-	}
-}
-
 func (s *StdioClientTransport) OnClose() {
 	if s.onClose != nil {
 		s.onClose()

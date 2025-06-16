@@ -92,8 +92,8 @@ func unmarshalResult(message *Message) (schema.Result, error) {
 		return &schema.ReadResourceResultSchema{
 			Contents: contents,
 		}, nil
-	case isListRootResult(rawResult):
-		var result schema.ListRootResultSchema
+	case isListRootsResult(rawResult):
+		var result schema.ListRootsResultSchema
 		if err := json.Unmarshal(message.Result, &result); err != nil {
 			return nil, err
 		}
@@ -107,13 +107,6 @@ func unmarshalResult(message *Message) (schema.Result, error) {
 
 	case isListResourceTemplatesResult(rawResult):
 		var result schema.ListResourceTemplatesResultSchema
-		if err := json.Unmarshal(message.Result, &result); err != nil {
-			return nil, err
-		}
-		return &result, nil
-
-	case isListRootResult(rawResult):
-		var result schema.ListRootResultSchema
 		if err := json.Unmarshal(message.Result, &result); err != nil {
 			return nil, err
 		}
@@ -139,7 +132,7 @@ func isEmptyResult(data map[string]any) bool {
 func isCreateMessageResult(data map[string]any) bool {
 	return hasResultFields(data, "model", "role", "content")
 }
-func isListRootResult(data map[string]any) bool {
+func isListRootsResult(data map[string]any) bool {
 	return hasResultFields(data, "roots")
 }
 func isReadResourceResult(data map[string]any) bool {

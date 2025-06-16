@@ -66,12 +66,6 @@ func (s *stdioServerTransport) SendMessage(message schema.JsonRpcMessage) error 
 	return nil
 }
 
-func (s *stdioServerTransport) OnReceiveMessage(message schema.JsonRpcMessage) {
-	if s.onReceiveMessage != nil {
-		s.onReceiveMessage(message)
-	}
-}
-
 func (s *stdioServerTransport) OnClose() {
 	if s.onClose != nil {
 		s.onClose()

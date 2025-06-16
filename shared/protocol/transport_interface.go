@@ -8,7 +8,6 @@ type Transport interface {
 	Start() error
 	Close() error
 	SendMessage(message schema.JsonRpcMessage) error
-	OnReceiveMessage(message schema.JsonRpcMessage)
 	OnClose()
 	OnError(error)
 

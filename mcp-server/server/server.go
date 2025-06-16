@@ -135,7 +135,7 @@ func (s *Server) CreateMessage(params any, contentType string) (schema.Result, e
 func (s *Server) ListRoots() (schema.Result, error) {
 	return s.Request(&schema.ListRootsRequestSchema{
 		MethodName: "roots/list",
-	}, &schema.ListRootResultSchema{})
+	}, &schema.ListRootsResultSchema{})
 }
 
 func (s *Server) SendLoggingMessage(params schema.LoggingMessageNotificationParams) error {

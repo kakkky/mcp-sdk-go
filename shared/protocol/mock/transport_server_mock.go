@@ -69,10 +69,6 @@ func (m *MockChannelServerTransport) SendMessage(message schema.JsonRpcMessage) 
 	return nil
 }
 
-func (m *MockChannelServerTransport) OnReceiveMessage(message schema.JsonRpcMessage) {
-	m.onReceiveMessage(message)
-}
-
 func (m *MockChannelServerTransport) OnClose() {
 	m.onClose()
 }

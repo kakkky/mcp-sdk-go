@@ -78,18 +78,6 @@ func (mr *MockTransportMockRecorder) OnError(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnError", reflect.TypeOf((*MockTransport)(nil).OnError), arg0)
 }
 
-// OnReceiveMessage mocks base method.
-func (m *MockTransport) OnReceiveMessage(message schema.JsonRpcMessage) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "OnReceiveMessage", message)
-}
-
-// OnReceiveMessage indicates an expected call of OnReceiveMessage.
-func (mr *MockTransportMockRecorder) OnReceiveMessage(message any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnReceiveMessage", reflect.TypeOf((*MockTransport)(nil).OnReceiveMessage), message)
-}
-
 // SendMessage mocks base method.
 func (m *MockTransport) SendMessage(message schema.JsonRpcMessage) error {
 	m.ctrl.T.Helper()

@@ -32,11 +32,11 @@ func (r *CreateMessageResultSchema[T]) Result() any {
 	return r
 }
 
-type ListRootResultSchema struct {
+type ListRootsResultSchema struct {
 	Roots []RootSchema `json:"roots"`
 }
 
-func (r *ListRootResultSchema) Result() any {
+func (r *ListRootsResultSchema) Result() any {
 	return r
 }
 
