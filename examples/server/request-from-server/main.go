@@ -39,5 +39,7 @@ func main() {
 	); err != nil {
 		panic(err)
 	}
+	mcpServer.Server.Ping()
+	mcpServer.Server.ListRoots()
 	wg.Wait()
 }

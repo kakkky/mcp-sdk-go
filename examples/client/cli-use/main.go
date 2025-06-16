@@ -19,8 +19,8 @@ func main() {
 		},
 		&client.ClientOptions{
 			Capabilities: schema.ClientCapabilities{
-				Experimental: map[string]any{
-					"exampleFeature": true,
+				Roots: &schema.Roots{
+					ListChanged: true,
 				},
 			},
 			ProtocolOptions: protocol.ProtocolOptions{
@@ -28,10 +28,20 @@ func main() {
 			},
 		},
 	)
+	c.SetRequestHandler(&schema.ListRootsRequestSchema{MethodName: "roots/list"}, func(jrr schema.JsonRpcRequest) (schema.Result, error) {
+		return &schema.ListRootsResultSchema{
+			Roots: []schema.RootSchema{
+				{
+					Uri:  "file:///example/root1",
+					Name: "Root 1",
+				},
+			},
+		}, nil
+	})
 	t := transport.NewStdioClientTransport(
 		transport.StdioServerParameters{
 			Command: "go",
-			Args:    []string{"run", "./examples/server/with-stdio/main.go"}, // サーバープログラムの実行コマンド
+			Args:    []string{"run", "./examples/server/request-from-server/main.go"}, // サーバープログラムの実行コマンド
 		},
 	)
 	go func() {
@@ -44,7 +54,7 @@ func main() {
 	fmt.Println("Initialization complete 🎉 Client is ready to send commands.")
 	// コマンド入力のためのループ
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("Enter method :  ")
+	fmt.Println("Enter method :  ")
 	for scanner.Scan() {
 		switch scanner.Text() {
 		case "ping":
@@ -65,7 +75,7 @@ func main() {
 			}
 			fmt.Println("Resources:", resources)
 		}
-		fmt.Print("Enter method :  ")
+		fmt.Println("Enter method :  ")
 	}
 
 }
