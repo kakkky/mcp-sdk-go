@@ -8,14 +8,16 @@ type ToolSchema struct {
 }
 
 type InputSchema struct {
-	Type       string         `json:"type"`       // "object"
-	Properties PropertySchema `json:"properties"` // Properties of the input object
+	Type       string         `json:"type"`               // "object"
+	Properties PropertySchema `json:"properties"`         // Properties of the input object
+	Required   []string       `json:"required,omitempty"` // Required properties
 }
 
 type PropertySchema map[string]PropertyInfoSchema
 type PropertyInfoSchema struct {
-	Type        string `json:"type"`
-	Description string `json:"description"`
+	Type        string   `json:"type"`
+	Description string   `json:"description"`
+	Enum        []string `json:"enum,omitempty"` // Optional, for enum types
 }
 
 type ToolAnotationsSchema struct {
