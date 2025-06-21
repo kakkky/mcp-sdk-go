@@ -118,6 +118,18 @@ func unmarshalResult(message *Message) (schema.Result, error) {
 			return nil, err
 		}
 		return &result, nil
+	case isListToolsResult(rawResult):
+		var result schema.ListToolsResultSchema
+		if err := json.Unmarshal(message.Result, &result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case isCallToolResult(rawResult):
+		var result schema.CallToolResultSchema
+		if err := json.Unmarshal(message.Result, &result); err != nil {
+			return nil, err
+		}
+		return &result, nil
 	}
 	return nil, fmt.Errorf("unknown result: %v", rawResult)
 }
@@ -146,6 +158,12 @@ func isListResourceTemplatesResult(data map[string]any) bool {
 }
 func isCompleteResult(data map[string]any) bool {
 	return hasResultFields(data, "completion")
+}
+func isListToolsResult(data map[string]any) bool {
+	return hasResultFields(data, "tools")
+}
+func isCallToolResult(data map[string]any) bool {
+	return hasResultFields(data, "content")
 }
 
 // 指定されたフィールドがすべて存在するか確認
