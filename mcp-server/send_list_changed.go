@@ -5,3 +5,9 @@ func (m *McpServer) sendResourceListChanged() {
 		_ = m.Server.SendResourceListChanged()
 	}
 }
+
+func (m *McpServer) sendToolListChanged() {
+	if m.isConnected() {
+		_ = m.Server.SendToolListChanged()
+	}
+}

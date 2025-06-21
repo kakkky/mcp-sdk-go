@@ -3,6 +3,7 @@ package mcpserver
 import (
 	"net/url"
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -365,6 +366,154 @@ func TestMcpServer_ResourceTemplate(t *testing.T) {
 				expectedMethods := append([]string{"resources/templates/list", "resources/read", "completion/complete", "resources/list"}, basicMethods...)
 				if !assert.ElementsMatch(t, methods, expectedMethods) {
 					t.Errorf("McpServer.ResourceTemplate() requestHandlers = %v, want %v", methods, expectedMethods)
+				}
+			}
+		})
+	}
+}
+
+func TestMcpServer_Tool(t *testing.T) {
+	type args struct {
+		name           string
+		description    string
+		propertySchema schema.PropertySchema
+		annotations    *schema.ToolAnotationsSchema
+		callback       ToolCallback
+	}
+	tests := []struct {
+		name          string
+		args          args
+		expectedTool  *RegisteredTool
+		isExpectedErr bool
+	}{
+		// ツールの正常登録
+		{
+			name: "normal : tool is provided",
+			args: args{
+				name:        "test-tool",
+				description: "Test tool description",
+				propertySchema: schema.PropertySchema{
+					"param1": schema.PropertyInfoSchema{
+						Type:        "number",
+						Description: "Test parameter",
+					},
+					"param2": schema.PropertyInfoSchema{
+						Type:        "number",
+						Description: "Another parameter",
+					},
+				},
+				annotations: &schema.ToolAnotationsSchema{
+					Title: "Test Tool",
+				},
+				callback: func(args map[string]any) (schema.CallToolResultSchema, error) {
+					params1 := args["param1"].(int)
+					params2 := args["param2"].(int)
+
+					// ここでは単純に結果を返すだけのコールバック
+					return schema.CallToolResultSchema{
+						Content: []schema.ToolContentSchema{
+							&schema.TextContentSchema{
+								Type: strconv.Itoa(params1 + params2), // intをstringに変換
+								Text: "result",
+							},
+						},
+					}, nil
+				},
+			},
+			expectedTool: &RegisteredTool{
+				description: "Test tool description",
+				propertySchema: schema.PropertySchema{
+					"param1": schema.PropertyInfoSchema{
+						Type:        "number",
+						Description: "Test parameter",
+					},
+					"param2": schema.PropertyInfoSchema{
+						Type:        "number",
+						Description: "Another parameter",
+					},
+				},
+				annotations: &schema.ToolAnotationsSchema{
+					Title: "Test Tool",
+				},
+				callback: func(args map[string]any) (schema.CallToolResultSchema, error) {
+					params1 := args["param1"].(int)
+					params2 := args["param2"].(int)
+
+					// ここでは単純に結果を返すだけのコールバック
+					return schema.CallToolResultSchema{
+						Content: []schema.ToolContentSchema{
+							&schema.TextContentSchema{
+								Type: strconv.Itoa(params1 + params2), // intをstringに変換
+								Text: "result",
+							},
+						},
+					}, nil
+				},
+				enabled: true,
+			},
+			isExpectedErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sut := NewMcpServer(schema.Implementation{}, &server.ServerOptions{
+				Capabilities: schema.ServerCapabilities{
+					Tools: &schema.Tools{
+						ListChanged: true,
+					},
+				},
+			})
+
+			gotTool, err := sut.Tool(
+				tt.args.name,
+				tt.args.description,
+				tt.args.propertySchema,
+				tt.args.annotations,
+				tt.args.callback)
+
+			if (err != nil) != tt.isExpectedErr {
+				t.Errorf("McpServer.Tool() error = %v, wantErr %v", err, tt.isExpectedErr)
+				return
+			}
+
+			cmpOpts := cmp.Options{
+				cmpopts.IgnoreFields(RegisteredTool{}, "Enable", "Disable", "Update", "Remove", "callback"),
+				cmp.AllowUnexported(RegisteredTool{}),
+			}
+
+			if diff := cmp.Diff(gotTool, tt.expectedTool, cmpOpts); diff != "" {
+				t.Errorf("McpServer.Tool() gotTool = %v, want %v, diff %s", gotTool, tt.expectedTool, diff)
+			}
+
+			// ツールが登録されているか確認
+			if tt.expectedTool != nil {
+				if diff := cmp.Diff(sut.registerdTools[tt.args.name], gotTool, cmpOpts); diff != "" {
+					t.Errorf("McpServer.Tool() registerdTools = %v, want %v, diff %s", sut.registerdTools[tt.args.name], tt.expectedTool, diff)
+				}
+			}
+
+			// ツールを更新できる
+			if gotTool != nil {
+				// nameを更新する
+				updatedName := "updated-tool"
+				gotTool.Update(ToolUpdates{
+					Name: updatedName,
+				})
+				// ツールが更新されていることを確認
+				if diff := cmp.Diff(sut.registerdTools[updatedName], gotTool, cmpOpts); diff != "" {
+					t.Errorf("McpServer.Tool() registerdTools = %v, want %v, diff %s", sut.registerdTools[updatedName], gotTool, diff)
+				}
+
+				// ツールを無効化できる
+				gotTool.Disable()
+				if sut.registerdTools[updatedName].enabled {
+					t.Errorf("McpServer.Tool() registerdTools = %v, want %v", sut.registerdTools[updatedName].enabled, false)
+				}
+
+				// ツールを削除できる
+				gotTool.Remove()
+				if _, ok := sut.registerdTools[updatedName]; ok {
+					t.Errorf("McpServer.Tool() registerdTools = %v, want %v", sut.registerdTools[updatedName], nil)
 				}
 			}
 		})

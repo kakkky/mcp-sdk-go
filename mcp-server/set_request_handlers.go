@@ -148,3 +148,69 @@ func (m *McpServer) setCompletionRequestHandlers() error {
 	m.isCompletionHandlersInitialized = true
 	return nil
 }
+
+func (m *McpServer) setToolRequestHandlers() error {
+	if m.isToolHandlersInitialized {
+		return nil
+	}
+	var resourceMethodlist = []string{"tools/list", "toos/call"}
+	for _, method := range resourceMethodlist {
+		if err := m.Server.ValidateCanSetRequestHandler(method); err != nil {
+			return err
+		}
+	}
+	m.Server.RegisterCapabilities(schema.ServerCapabilities{
+		Tools: &schema.Tools{
+			ListChanged: true,
+		},
+	})
+
+	m.Server.SetRequestHandler(&schema.ListToolsRequestSchema{MethodName: "tools/list"}, func(jrr schema.JsonRpcRequest) (schema.Result, error) {
+		var tools []schema.ToolSchema
+		for name, registerdTool := range m.registerdTools {
+			if registerdTool.enabled {
+				tools = append(tools, schema.ToolSchema{
+					Name:        name,
+					Description: registerdTool.description,
+					InputSchema: schema.InputSchema{
+						Type:       "object",
+						Properties: registerdTool.propertySchema,
+					},
+					Annotations: registerdTool.annotations,
+				})
+			}
+		}
+		return &schema.ListToolsResultSchema{
+			Tools: tools,
+		}, nil
+	})
+
+	m.Server.SetRequestHandler(&schema.CallToolRequestSchema{MethodName: "tools/call"}, func(jrr schema.JsonRpcRequest) (schema.Result, error) {
+		request, ok := jrr.Request.(*schema.CallToolRequestSchema)
+		if !ok {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_REQUEST, "invalid request", nil)
+		}
+		tool := m.registerdTools[request.ParamsData.Name]
+		if tool == nil {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("tool %s not found", request.ParamsData.Name), nil)
+		}
+		if !tool.enabled {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("tool %s disabled", request.ParamsData.Name), nil)
+		}
+		if tool.propertySchema == nil {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("tool %s has no input schema", request.ParamsData.Name), nil)
+		}
+		args := request.ParamsData.Arguments
+		callback := tool.callback
+		// コールバック内のクライアントエラーならエラーは返さない
+		result, err := callback(args)
+		if err != nil {
+			return nil, mcperr.NewMcpErr(mcperr.INTERNAL_ERROR, fmt.Sprintf("failed to call tool %s", request.ParamsData.Name), err.Error())
+		}
+		return &result, nil
+	})
+
+	m.isToolHandlersInitialized = true
+
+	return nil
+}

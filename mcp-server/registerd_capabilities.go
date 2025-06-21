@@ -46,3 +46,26 @@ type ResourceTemplateUpdates struct {
 }
 
 type ReadResourceTemplateCallback[T schema.ResourceContentSchema] func(url url.URL, variables map[string]any) (schema.ReadResourceResultSchema, error)
+
+type RegisteredTool struct {
+	description    string
+	propertySchema schema.PropertySchema
+	annotations    *schema.ToolAnotationsSchema
+	callback       ToolCallback
+	enabled        bool
+	Enable         func()
+	Remove         func()
+	Disable        func()
+	Update         func(ToolUpdates)
+}
+
+type ToolUpdates struct {
+	Name         string
+	Description  string
+	ParamsSchema schema.PropertySchema
+	Callback     *ToolCallback
+	Annotations  *schema.ToolAnotationsSchema
+	Enabled      *bool
+}
+
+type ToolCallback func(args map[string]any) (schema.CallToolResultSchema, error)

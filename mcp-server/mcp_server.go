@@ -16,7 +16,9 @@ type McpServer struct {
 	Server                          *server.Server
 	registeredResources             map[string]*RegisteredResource
 	registeredResourceTemplates     map[string]*RegisteredResourceTemplate
+	registerdTools                  map[string]*RegisteredTool
 	isResourceHandlersInitialized   bool
+	isToolHandlersInitialized       bool
 	isCompletionHandlersInitialized bool
 }
 
@@ -25,6 +27,7 @@ func NewMcpServer(serverInfo schema.Implementation, options *server.ServerOption
 		Server:                      server.NewServer(serverInfo, options),
 		registeredResources:         make(map[string]*RegisteredResource),
 		registeredResourceTemplates: make(map[string]*RegisteredResourceTemplate),
+		registerdTools:              make(map[string]*RegisteredTool),
 	}
 }
 
@@ -188,4 +191,66 @@ func (m *McpServer) ResourceTemplate(
 	_ = m.setResourceRequestHandlers()
 	m.sendResourceListChanged()
 	return &registeredResourceTemplate, nil
+}
+
+func (m *McpServer) Tool(
+	name string,
+	description string,
+	propertySchema schema.PropertySchema,
+	annotations *schema.ToolAnotationsSchema,
+	callback ToolCallback,
+) (*RegisteredTool, error) {
+	if m.registerdTools[name] != nil {
+		return nil, fmt.Errorf("tool %s is already registered", name)
+	}
+	namePtr := &name
+	registeredTool := RegisteredTool{
+		description:    description,
+		propertySchema: propertySchema,
+		annotations:    annotations,
+		callback:       callback,
+		enabled:        true,
+		Disable: func() {
+			m.registerdTools[*namePtr].Update(ToolUpdates{Enabled: &[]bool{false}[0]})
+		},
+		Enable: func() {
+			m.registerdTools[*namePtr].Update(ToolUpdates{Enabled: &[]bool{true}[0]})
+		},
+		Remove: func() { delete(m.registerdTools, *namePtr) },
+		Update: func(updates ToolUpdates) {
+			if _, ok := m.registerdTools[*namePtr]; !ok {
+				fmt.Println("tool not found")
+				return
+			}
+			if updates.Name != "" && updates.Name != *namePtr {
+				toolCopy := m.registerdTools[*namePtr]
+				delete(m.registerdTools, *namePtr)
+				m.registerdTools[updates.Name] = toolCopy
+
+				// 参照する値を更新することで、nameの値が変わった場合でも、以降の処理 & Disable/Enable/Removeが正しく動作するようにする
+				*namePtr = updates.Name
+			}
+			if updates.Description != "" {
+				m.registerdTools[*namePtr].description = updates.Description
+			}
+			if updates.ParamsSchema != nil {
+				m.registerdTools[*namePtr].propertySchema = updates.ParamsSchema
+			}
+			if updates.Callback != nil {
+				m.registerdTools[*namePtr].callback = *updates.Callback
+			}
+			if updates.Annotations != nil {
+				m.registerdTools[*namePtr].annotations = updates.Annotations
+			}
+			if updates.Enabled != nil {
+				m.registerdTools[*namePtr].enabled = *updates.Enabled
+			}
+			m.sendToolListChanged()
+		},
+	}
+	m.registerdTools[*namePtr] = &registeredTool
+
+	_ = m.setToolRequestHandlers()
+	m.sendToolListChanged()
+	return &registeredTool, nil
 }
