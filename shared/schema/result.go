@@ -101,7 +101,10 @@ type CallToolResultSchema struct {
 	Content                           []ToolContentSchema `json:"content"`
 	IsError                           bool                `json:"isError,omitempty"`
 	CompatibilityCallToolResultSchema                     // Deprecated: use Content instead
+}
 
+func (r *CallToolResultSchema) Result() any {
+	return r
 }
 
 // TextContentSchema | ImageContentSchema | AudioContentSchema | EmbeddedResourceSchema

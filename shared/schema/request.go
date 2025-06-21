@@ -217,8 +217,8 @@ type CallToolRequestSchema struct {
 	ParamsData CallToolRequestParams `json:"params"`
 }
 type CallToolRequestParams struct {
-	Name      string `json:"name"`
-	Arguments any    `json:"arguments,omitempty"` // 変数名と値のマップ
+	Name      string         `json:"name"`
+	Arguments map[string]any `json:"arguments,omitempty"` // 変数名と値のマップ
 }
 
 func (r *CallToolRequestSchema) Method() string {

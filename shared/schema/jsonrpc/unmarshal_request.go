@@ -97,6 +97,19 @@ func unmarshalRequest(message *Message) (schema.Request, error) {
 			MethodName: message.Method,
 			ParamsData: *params,
 		}, nil
+	case "tools/list":
+		return &schema.ListToolsRequestSchema{
+			MethodName: message.Method,
+		}, nil
+	case "tools/call":
+		params := &schema.CallToolRequestParams{}
+		if err := json.Unmarshal(message.Params, &params); err != nil {
+			return nil, err
+		}
+		return &schema.CallToolRequestSchema{
+			MethodName: message.Method,
+			ParamsData: *params,
+		}, nil
 	}
 	return nil, fmt.Errorf("unknown method: %s", message.Method)
 }
