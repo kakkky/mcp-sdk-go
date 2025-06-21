@@ -39,7 +39,7 @@ func main() {
 	); err != nil {
 		panic(err)
 	}
-	mcpServer.Server.Ping()
-	mcpServer.Server.ListRoots()
+	_, _ = mcpServer.Server.Ping()
+	_, _ = mcpServer.Server.ListRoots()
 	wg.Wait()
 }

@@ -159,7 +159,7 @@ func (m *McpServer) setToolRequestHandlers() error {
 			return err
 		}
 	}
-	m.Server.RegisterCapabilities(schema.ServerCapabilities{
+	_ = m.Server.RegisterCapabilities(schema.ServerCapabilities{
 		Tools: &schema.Tools{
 			ListChanged: true,
 		},
