@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 
 	mcpserver "github.com/kakkky/mcp-sdk-go/mcp-server"
@@ -18,6 +19,9 @@ func main() {
 		&server.ServerOptions{
 			Capabilities: schema.ServerCapabilities{
 				Resources: &schema.Resources{
+					ListChanged: true,
+				},
+				Tools: &schema.Tools{
 					ListChanged: true,
 				},
 				Completion: &schema.Completion{},
@@ -98,6 +102,44 @@ func main() {
 				}}, nil
 			}
 			return schema.ReadResourceResultSchema{}, nil
+		},
+	); err != nil {
+		panic(err)
+	}
+
+	// Toolを登録
+	if _, err := mcpServer.Tool(
+		"calculate",
+		"This tool calculates the sum of two numbers",
+		schema.PropertySchema{
+			"first": schema.PropertyInfoSchema{
+				Type:        "number",
+				Description: "This is the first parameter",
+			},
+			"second": schema.PropertyInfoSchema{
+				Type:        "number",
+				Description: "This is the second parameter",
+			},
+		},
+		nil,
+		func(args map[string]any) (schema.CallToolResultSchema, error) {
+			param1, ok1 := args["param1"].(float64)
+			param2, ok2 := args["param2"].(float64)
+			if !ok1 || !ok2 {
+				return schema.CallToolResultSchema{
+					Content: []schema.ToolContentSchema{},
+					IsError: true,
+				}, nil
+			}
+			result := param1 + param2
+			return schema.CallToolResultSchema{
+				Content: []schema.ToolContentSchema{
+					&schema.TextContentSchema{
+						Type: "text",
+						Text: "The result of the addition is: " + fmt.Sprintf("%v", result),
+					},
+				},
+			}, nil
 		},
 	); err != nil {
 		panic(err)
