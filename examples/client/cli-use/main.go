@@ -41,7 +41,7 @@ func main() {
 	t := transport.NewStdioClientTransport(
 		transport.StdioServerParameters{
 			Command: "go",
-			Args:    []string{"run", "./examples/server/request-from-server/main.go"}, // サーバープログラムの実行コマンド
+			Args:    []string{"run", "./examples/server/with-stdio/main.go"}, // サーバープログラムの実行コマンド
 		},
 	)
 	go func() {
@@ -52,6 +52,14 @@ func main() {
 	}()
 	<-client.OperationPhaseStartNotify
 	fmt.Println("Initialization complete 🎉 Client is ready to send commands.")
+	c.ListTools()
+	c.CallTool(schema.CallToolRequestParams{
+		Name: "calculate",
+		Arguments: map[string]any{
+			"first":  5,
+			"second": []float64{10, 20},
+		},
+	})
 	// コマンド入力のためのループ
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Println("Enter method :  ")

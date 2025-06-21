@@ -117,26 +117,36 @@ func main() {
 				Description: "This is the first parameter",
 			},
 			"second": schema.PropertyInfoSchema{
-				Type:        "number",
-				Description: "This is the second parameter",
+				Type:        "array",
+				Description: "This is the second parameter, which is an array of numbers",
 			},
 		},
 		nil,
 		func(args map[string]any) (schema.CallToolResultSchema, error) {
-			param1, ok1 := args["param1"].(float64)
-			param2, ok2 := args["param2"].(float64)
+			first, ok1 := args["first"].(float64)
+			second, ok2 := args["second"].([]any)
 			if !ok1 || !ok2 {
 				return schema.CallToolResultSchema{
 					Content: []schema.ToolContentSchema{},
 					IsError: true,
 				}, nil
 			}
-			result := param1 + param2
+			var secondValue float64
+			for _, v := range second {
+				if num, ok := v.(float64); ok {
+					secondValue += num
+				} else {
+					return schema.CallToolResultSchema{
+						Content: []schema.ToolContentSchema{},
+						IsError: true,
+					}, nil
+				}
+			}
 			return schema.CallToolResultSchema{
 				Content: []schema.ToolContentSchema{
 					&schema.TextContentSchema{
 						Type: "text",
-						Text: "The result of the addition is: " + fmt.Sprintf("%v", result),
+						Text: "The result of the addition is: " + fmt.Sprintf("%v", first+secondValue),
 					},
 				},
 			}, nil
