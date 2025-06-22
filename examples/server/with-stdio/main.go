@@ -24,6 +24,9 @@ func main() {
 				Tools: &schema.Tools{
 					ListChanged: true,
 				},
+				Prompts: &schema.Prompts{
+					ListChanged: true,
+				},
 				Completion: &schema.Completion{},
 			},
 		})
@@ -150,6 +153,38 @@ func main() {
 					},
 				},
 			}, nil
+		},
+	); err != nil {
+		panic(err)
+	}
+	if _, err := mcpServer.Prompt(
+		"example-prompt",
+		"This is an example prompt",
+		[]schema.PromptAugmentSchema{
+			{
+				Name:             "input",
+				Description:      "This is an input parameter",
+				Required:         true,
+				CompletionValues: []string{"value1", "value2", "value3"},
+			},
+		},
+		func(args []schema.PromptAugmentSchema) (schema.GetPromptResultSchema, error) {
+			var promptMessages []schema.PromptMessageSchema
+			for _, arg := range args {
+				if arg.Name == "input" {
+					promptMessages = append(promptMessages, schema.PromptMessageSchema{
+						Role: "user",
+						Content: &schema.TextContentSchema{
+							Type: "text",
+							Text: "You provided input: " + arg.CompletionValues[0], //
+						},
+					})
+				}
+			}
+			return schema.GetPromptResultSchema{
+				Description: "This is a response from the example prompt",
+				Messages:    promptMessages,
+			}, err
 		},
 	); err != nil {
 		panic(err)
