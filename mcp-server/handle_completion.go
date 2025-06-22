@@ -2,6 +2,7 @@ package mcpserver
 
 import (
 	"fmt"
+	"strings"
 
 	mcperr "github.com/kakkky/mcp-sdk-go/shared/mcp-err"
 	"github.com/kakkky/mcp-sdk-go/shared/schema"
@@ -34,6 +35,41 @@ func (m *McpServer) handleResourceCompletion(request schema.CompleteRequestSchem
 		return EmptyCompletionResult(), nil
 	}
 	suggestions := completer(params.Argument.Value)
+	return createCompletionResult(suggestions), nil
+}
+
+func (m *McpServer) handlePromptCompletion(request schema.CompleteRequestSchema, ref schema.PromptReferenceSchema) (*schema.CompleteResultSchema, error) {
+	params := request.Params().(schema.CompleteRequestParams)
+	prompt, ok := m.registeredPrompts[ref.UriOrName()]
+	if !ok {
+		return nil, mcperr.NewMcpErr(
+			mcperr.INVALID_PARAMS,
+			fmt.Sprintf("prompt %s not found", params.Ref.UriOrName()),
+			nil,
+		)
+	}
+	if !prompt.enabled {
+		return nil, mcperr.NewMcpErr(
+			mcperr.INVALID_PARAMS,
+			fmt.Sprintf("prompt %s disabled", params.Ref.UriOrName()),
+			nil,
+		)
+	}
+	if prompt.argsSchema == nil {
+		return EmptyCompletionResult(), nil
+	}
+	searchingArgName := params.Argument.Name
+	currentValue := params.Argument.Value
+	var suggestions []string
+	for _, arg := range prompt.argsSchema {
+		if searchingArgName == arg.Name {
+			for _, value := range arg.CompletionValues {
+				if strings.HasPrefix(value, currentValue) {
+					suggestions = append(suggestions, value)
+				}
+			}
+		}
+	}
 	return createCompletionResult(suggestions), nil
 }
 
