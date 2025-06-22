@@ -52,8 +52,8 @@ func main() {
 	}()
 	<-client.OperationPhaseStartNotify
 	fmt.Println("Initialization complete 🎉 Client is ready to send commands.")
-	c.ListTools()
-	c.CallTool(schema.CallToolRequestParams{
+	_, _ = c.ListTools()
+	_, _ = c.CallTool(schema.CallToolRequestParams{
 		Name: "calculate",
 		Arguments: map[string]any{
 			"first":  5,

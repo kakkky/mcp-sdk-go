@@ -228,7 +228,7 @@ func (m *McpServer) setPromptRequestHandlers() error {
 			return err
 		}
 	}
-	m.Server.RegisterCapabilities(schema.ServerCapabilities{
+	_ = m.Server.RegisterCapabilities(schema.ServerCapabilities{
 		Prompts: &schema.Prompts{
 			ListChanged: true,
 		},
@@ -271,7 +271,7 @@ func (m *McpServer) setPromptRequestHandlers() error {
 		}
 		return &result, nil
 	})
-	m.setCompletionRequestHandlers()
+	_ = m.setCompletionRequestHandlers()
 
 	m.isPromptHandlersInitialized = true
 	return nil
