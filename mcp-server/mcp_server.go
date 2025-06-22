@@ -17,8 +17,10 @@ type McpServer struct {
 	registeredResources             map[string]*RegisteredResource
 	registeredResourceTemplates     map[string]*RegisteredResourceTemplate
 	registerdTools                  map[string]*RegisteredTool
+	registeredPrompts               map[string]*RegisteredPrompt
 	isResourceHandlersInitialized   bool
 	isToolHandlersInitialized       bool
+	isPromptHandlersInitialized     bool
 	isCompletionHandlersInitialized bool
 }
 
@@ -28,6 +30,7 @@ func NewMcpServer(serverInfo schema.Implementation, options *server.ServerOption
 		registeredResources:         make(map[string]*RegisteredResource),
 		registeredResourceTemplates: make(map[string]*RegisteredResourceTemplate),
 		registerdTools:              make(map[string]*RegisteredTool),
+		registeredPrompts:           make(map[string]*RegisteredPrompt),
 	}
 }
 
@@ -236,8 +239,8 @@ func (m *McpServer) Tool(
 			if updates.ParamsSchema != nil {
 				m.registerdTools[*namePtr].propertySchema = updates.ParamsSchema
 			}
-			if updates.Callback != nil {
-				m.registerdTools[*namePtr].callback = *updates.Callback
+			if updates.callback != nil {
+				m.registerdTools[*namePtr].callback = updates.callback
 			}
 			if updates.Annotations != nil {
 				m.registerdTools[*namePtr].annotations = updates.Annotations
@@ -253,4 +256,69 @@ func (m *McpServer) Tool(
 	_ = m.setToolRequestHandlers()
 	m.sendToolListChanged()
 	return &registeredTool, nil
+}
+
+func (m *McpServer) Prompt(
+	name string,
+	description string,
+	argsSchema []schema.PromptAugmentSchema,
+	callback PromptCallback,
+) (*RegisteredPrompt, error) {
+	if m.registeredPrompts[name] != nil {
+		return nil, fmt.Errorf("prompt %s is already registered", name)
+	}
+	namePtr := &name
+	registeredPrompt := RegisteredPrompt{
+		description: description,
+		argsSchema:  argsSchema,
+		callback:    callback,
+		enabled:     true,
+		Disable: func() {
+			if _, ok := m.registeredPrompts[*namePtr]; !ok {
+				fmt.Println("prompt not found")
+				return
+			}
+			disabled := false
+			m.registeredPrompts[*namePtr].Update(PromptUpdates{Enabled: &disabled})
+		},
+		Enable: func() {
+			if _, ok := m.registeredPrompts[*namePtr]; !ok {
+				fmt.Println("prompt not found")
+				return
+			}
+			enabled := true
+			m.registeredPrompts[*namePtr].Update(PromptUpdates{Enabled: &enabled})
+		},
+		Remove: func() { delete(m.registeredPrompts, *namePtr) },
+		Update: func(updates PromptUpdates) {
+			if _, ok := m.registeredPrompts[*namePtr]; !ok {
+				fmt.Println("prompt not found")
+				return
+			}
+			if updates.Name != "" && updates.Name != *namePtr {
+				promptCopy := m.registeredPrompts[*namePtr]
+				delete(m.registeredPrompts, *namePtr)
+				m.registeredPrompts[updates.Name] = promptCopy
+				// 参照する値を更新することで、nameの値が変わった場合でも、以降の処理 & Disable/Enable/Removeが正しく動作するようにする
+				*namePtr = updates.Name
+			}
+			if updates.Description != "" {
+				m.registeredPrompts[*namePtr].description = updates.Description
+			}
+			if updates.ArgsSchema != nil {
+				m.registeredPrompts[*namePtr].argsSchema = updates.ArgsSchema
+			}
+			if updates.Callback != nil {
+				m.registeredPrompts[*namePtr].callback = updates.Callback
+			}
+			if updates.Enabled != nil {
+				m.registeredPrompts[*namePtr].enabled = *updates.Enabled
+			}
+			m.sendPromptListChanged()
+		},
+	}
+	m.registeredPrompts[*namePtr] = &registeredPrompt
+	_ = m.setPromptRequestHandlers()
+	m.sendPromptListChanged()
+	return &registeredPrompt, nil
 }

@@ -110,6 +110,20 @@ func unmarshalRequest(message *Message) (schema.Request, error) {
 			MethodName: message.Method,
 			ParamsData: *params,
 		}, nil
+	case "prompts/list":
+		return &schema.ListPromptsRequestSchema{
+			MethodName: message.Method,
+		}, nil
+	case "prompts/get":
+		params := &schema.GetPromptRequestParams{}
+		if err := json.Unmarshal(message.Params, &params); err != nil {
+			return nil, err
+		}
+		return &schema.GetPromptRequestSchema{
+			MethodName: message.Method,
+			ParamsData: *params,
+		}, nil
 	}
+
 	return nil, fmt.Errorf("unknown method: %s", message.Method)
 }

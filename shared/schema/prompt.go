@@ -7,9 +7,10 @@ type PromptSchema struct {
 }
 
 type PromptAugmentSchema struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Required    bool   `json:"required,omitempty"`
+	Name             string `json:"name"`
+	Description      string `json:"description,omitempty"`
+	Required         bool   `json:"required,omitempty"`
+	CompletionValues []string
 }
 
 type PromptMessageSchema struct {

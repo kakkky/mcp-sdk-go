@@ -133,7 +133,11 @@ func (m *McpServer) setCompletionRequestHandlers() error {
 		params := request.Params().(schema.CompleteRequestParams)
 		switch params.Ref.Type() {
 		case "ref/prompt":
-			// TODO: implement
+			ref, ok := params.Ref.(*schema.PromptReferenceSchema)
+			if !ok {
+				return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, "invalid ref type", nil)
+			}
+			return m.handlePromptCompletion(*request, *ref)
 		case "ref/resource":
 			ref, ok := params.Ref.(*schema.ResourceReferenceSchema)
 			if !ok {
@@ -143,7 +147,6 @@ func (m *McpServer) setCompletionRequestHandlers() error {
 		default:
 			return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("invalid completion reference : %s", params.Ref), nil)
 		}
-		return nil, nil
 	})
 	m.isCompletionHandlersInitialized = true
 	return nil
@@ -212,5 +215,64 @@ func (m *McpServer) setToolRequestHandlers() error {
 
 	m.isToolHandlersInitialized = true
 
+	return nil
+}
+
+func (m *McpServer) setPromptRequestHandlers() error {
+	if m.isPromptHandlersInitialized {
+		return nil
+	}
+	var promptMethodlist = []string{"prompts/list", "prompts/read"}
+	for _, method := range promptMethodlist {
+		if err := m.Server.ValidateCanSetRequestHandler(method); err != nil {
+			return err
+		}
+	}
+	m.Server.RegisterCapabilities(schema.ServerCapabilities{
+		Prompts: &schema.Prompts{
+			ListChanged: true,
+		},
+	})
+
+	m.Server.SetRequestHandler(&schema.ListPromptsRequestSchema{MethodName: "prompts/list"}, func(jrr schema.JsonRpcRequest) (schema.Result, error) {
+		var prompts []schema.PromptSchema
+		for name, registerdPrompt := range m.registeredPrompts {
+			if registerdPrompt.enabled {
+				prompts = append(prompts, schema.PromptSchema{
+					Name:        name,
+					Description: registerdPrompt.description,
+					Auguments:   registerdPrompt.argsSchema,
+				})
+			}
+		}
+		return &schema.ListPromptsResultSchema{
+			Prompts: prompts,
+		}, nil
+	})
+
+	m.Server.SetRequestHandler(&schema.GetPromptRequestSchema{MethodName: "prompts/get"}, func(jrr schema.JsonRpcRequest) (schema.Result, error) {
+		request, ok := jrr.Request.(*schema.GetPromptRequestSchema)
+		if !ok {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_REQUEST, "invalid request", nil)
+		}
+		prompt := m.registeredPrompts[request.ParamsData.Name]
+		if prompt == nil {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("prompt %s not found", request.ParamsData.Name), nil)
+		}
+		if !prompt.enabled {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("prompt %s disabled", request.ParamsData.Name), nil)
+		}
+		if prompt.argsSchema == nil {
+			return nil, mcperr.NewMcpErr(mcperr.INVALID_PARAMS, fmt.Sprintf("prompt %s has no input schema", request.ParamsData.Name), nil)
+		}
+		result, err := prompt.callback(prompt.argsSchema)
+		if err != nil {
+			return nil, mcperr.NewMcpErr(mcperr.INTERNAL_ERROR, fmt.Sprintf("failed to get prompt %s", request.ParamsData.Name), err.Error())
+		}
+		return &result, nil
+	})
+	m.setCompletionRequestHandlers()
+
+	m.isPromptHandlersInitialized = true
 	return nil
 }

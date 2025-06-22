@@ -11,3 +11,9 @@ func (m *McpServer) sendToolListChanged() {
 		_ = m.Server.SendToolListChanged()
 	}
 }
+
+func (m *McpServer) sendPromptListChanged() {
+	if m.isConnected() {
+		_ = m.Server.SendPromptListChanged()
+	}
+}

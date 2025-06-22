@@ -63,9 +63,30 @@ type ToolUpdates struct {
 	Name         string
 	Description  string
 	ParamsSchema schema.PropertySchema
-	Callback     *ToolCallback
+	callback     ToolCallback
 	Annotations  *schema.ToolAnotationsSchema
 	Enabled      *bool
 }
 
 type ToolCallback func(args map[string]any) (schema.CallToolResultSchema, error)
+
+type RegisteredPrompt struct {
+	description string
+	argsSchema  []schema.PromptAugmentSchema
+	callback    PromptCallback
+	enabled     bool
+	Enable      func()
+	Disable     func()
+	Remove      func()
+	Update      func(PromptUpdates)
+}
+
+type PromptUpdates struct {
+	Name        string
+	Description string
+	ArgsSchema  []schema.PromptAugmentSchema
+	Callback    PromptCallback
+	Enabled     *bool
+}
+
+type PromptCallback func(args []schema.PromptAugmentSchema) (schema.GetPromptResultSchema, error)

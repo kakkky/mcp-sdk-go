@@ -130,6 +130,18 @@ func unmarshalResult(message *Message) (schema.Result, error) {
 			return nil, err
 		}
 		return &result, nil
+	case isListPromptsResult(rawResult):
+		var result schema.ListPromptsResultSchema
+		if err := json.Unmarshal(message.Result, &result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case isGetPromptResult(rawResult):
+		var result schema.GetPromptResultSchema
+		if err := json.Unmarshal(message.Result, &result); err != nil {
+			return nil, err
+		}
+		return &result, nil
 	}
 	return nil, fmt.Errorf("unknown result: %v", rawResult)
 }
@@ -164,6 +176,12 @@ func isListToolsResult(data map[string]any) bool {
 }
 func isCallToolResult(data map[string]any) bool {
 	return hasResultFields(data, "content")
+}
+func isListPromptsResult(data map[string]any) bool {
+	return hasResultFields(data, "prompts")
+}
+func isGetPromptResult(data map[string]any) bool {
+	return hasResultFields(data, "description", "messages")
 }
 
 // 指定されたフィールドがすべて存在するか確認
