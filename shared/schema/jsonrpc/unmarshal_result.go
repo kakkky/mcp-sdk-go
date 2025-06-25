@@ -125,11 +125,38 @@ func unmarshalResult(message *Message) (schema.Result, error) {
 		}
 		return &result, nil
 	case isCallToolResult(rawResult):
-		var result schema.CallToolResultSchema
-		if err := json.Unmarshal(message.Result, &result); err != nil {
-			return nil, err
+		rawContents := rawResult["content"].([]any)
+		contents := make([]schema.ToolContentSchema, 0, len(rawContents))
+		for _, content := range rawContents {
+			content := content.(map[string]any)
+			switch content["type"].(string) {
+			case "text":
+				contents = append(contents, &schema.TextContentSchema{
+					Type: content["type"].(string),
+					Text: content["text"].(string),
+				})
+			case "image":
+				contents = append(contents, &schema.ImageContentSchema{
+					Type:     content["type"].(string),
+					Data:     content["data"].(string),
+					MimeType: content["mimeType"].(string),
+				})
+			case "audio":
+				contents = append(contents, &schema.AudioContentSchema{
+					Type:     content["type"].(string),
+					Data:     content["data"].(string),
+					MimeType: content["mimeType"].(string),
+				})
+			}
 		}
-		return &result, nil
+		isError, found := rawResult["isError"]
+		if !found {
+			isError = false // デフォルトはエラーではない
+		}
+		return &schema.CallToolResultSchema{
+			Content: contents,
+			IsError: isError.(bool),
+		}, nil
 	case isListPromptsResult(rawResult):
 		var result schema.ListPromptsResultSchema
 		if err := json.Unmarshal(message.Result, &result); err != nil {
