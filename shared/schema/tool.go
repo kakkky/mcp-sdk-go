@@ -27,3 +27,8 @@ type ToolAnotationsSchema struct {
 	IdempotentHint  bool   `json:"idempotentHint,omitempty"`  // If true, the tool is idempotent
 	OpenWorldHint   bool   `json:"openWorldHint,omitempty"`   // If true, the tool is open world
 }
+
+// TextContentSchema | ImageContentSchema | AudioContentSchema | EmbeddedResourceSchema
+type ToolContentSchema interface {
+	Content() any // Returns the tool result content, used for type assertion
+}

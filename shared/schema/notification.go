@@ -7,6 +7,7 @@ type Notification interface {
 	Params() any
 }
 
+// notifications/initialized
 type InitializeNotificationSchema struct {
 	MethodName string `json:"method"`
 }
@@ -22,6 +23,7 @@ func (n *InitializeNotificationSchema) Params() any {
 	return nil
 }
 
+// notifications/message
 type LoggingMessageNotificationSchema struct {
 	MethodName string                           `json:"method"`
 	ParamsData LoggingMessageNotificationParams `json:"params"`
@@ -41,6 +43,7 @@ func (n *LoggingMessageNotificationSchema) Params() any {
 	return n.ParamsData
 }
 
+// notifications/resources/updated
 type ResourceUpdatedNotificationSchema struct {
 	MethodName string                            `json:"method"`
 	ParamsData ResourceUpdatedNotificationParams `json:"params"`
@@ -58,6 +61,7 @@ func (n *ResourceUpdatedNotificationSchema) Params() any {
 	return n.ParamsData
 }
 
+// notifications/resources/list_changed
 type ResourceListChangedNotificationSchema struct {
 	MethodName string `json:"method"`
 }
@@ -69,6 +73,7 @@ func (n *ResourceListChangedNotificationSchema) Params() any {
 	return nil
 }
 
+// notifications/tools/list_changed
 type ToolListChangedNotificationSchema struct {
 	MethodName string `json:"method"`
 }
@@ -81,6 +86,7 @@ func (n *ToolListChangedNotificationSchema) Params() any {
 	return nil
 }
 
+// notifications/prompts/list_changed
 type PromptListChangedNotificationSchema struct {
 	MethodName string `json:"method"`
 }
@@ -93,6 +99,7 @@ func (n *PromptListChangedNotificationSchema) Params() any {
 	return nil
 }
 
+// notifications/roots/list_changed
 type RootsListChangedNotificationSchema struct {
 	MethodName string `json:"method"`
 }

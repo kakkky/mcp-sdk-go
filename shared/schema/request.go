@@ -5,6 +5,7 @@ type Request interface {
 	Params() any
 }
 
+// initialize
 type InitializeRequestSchema struct {
 	MethodName string                  `json:"method"`
 	ParamsData InitializeRequestParams `json:"params"`
@@ -24,6 +25,7 @@ func (r *InitializeRequestSchema) Params() any {
 	return r.ParamsData
 }
 
+// ping
 type PingRequestSchema struct {
 	MethodName string `json:"method"`
 }
@@ -36,6 +38,7 @@ func (r *PingRequestSchema) Params() any {
 	return nil
 }
 
+// sampling/createMessage
 type CreateMessageRequestSchema[T ContentSchema] struct {
 	MethodName string                        `json:"method"`
 	ParamsData CreateMessageRequestParams[T] `json:"params"`
@@ -60,6 +63,7 @@ func (r *CreateMessageRequestSchema[T]) Params() any {
 	return r.ParamsData
 }
 
+// roots/list
 type ListRootsRequestSchema struct {
 	MethodName string `json:"method"`
 }
@@ -72,6 +76,7 @@ func (r *ListRootsRequestSchema) Params() any {
 	return nil
 }
 
+// resources/list
 type ListResourceRequestSchema struct {
 	MethodName string `json:"method"`
 }
@@ -84,6 +89,7 @@ func (r *ListResourceRequestSchema) Params() any {
 	return nil
 }
 
+// resources/templates/list
 type ListResourceTemplatesRequestSchema struct {
 	MethodName string `json:"method"`
 }
@@ -95,6 +101,7 @@ func (r *ListResourceTemplatesRequestSchema) Params() any {
 	return nil
 }
 
+// resources/read
 type ReadResourceRequestSchema struct {
 	MethodName string                    `json:"method"`
 	ParamsData ReadResourceRequestParams `json:"params"`
@@ -111,6 +118,7 @@ func (r *ReadResourceRequestSchema) Params() any {
 	return r.ParamsData
 }
 
+// resources/subscribe
 type SubscribeRequestSchema struct {
 	MethodName string                 `json:"method"`
 	ParamsData SubscribeRequestParams `json:"params"`
@@ -126,6 +134,7 @@ func (r *SubscribeRequestSchema) Params() any {
 	return r.ParamsData
 }
 
+// resources/unsubscribe
 type UnsubscribeRequestSchema struct {
 	MethodName string                   `json:"method"`
 	ParamsData UnsubscribeRequestParams `json:"params"`
@@ -141,6 +150,7 @@ func (r *UnsubscribeRequestSchema) Params() any {
 	return r.ParamsData
 }
 
+// completion/complete
 type CompleteRequestSchema struct {
 	MethodName string                `json:"method"`
 	ParamsData CompleteRequestParams `json:"params"`
@@ -158,6 +168,7 @@ func (r *CompleteRequestSchema) Params() any {
 	return r.ParamsData
 }
 
+// logging/setLevel
 type SetLevelRequestSchema struct {
 	MethodName string                       `json:"method"`
 	ParamsData SetLoggingLevelRequestParams `json:"params"`
@@ -174,6 +185,7 @@ type SetLoggingLevelRequestParams struct {
 	Level LoggingLevelSchema `json:"level"`
 }
 
+// prompts/list
 type ListPromptsRequestSchema struct {
 	MethodName string `json:"method"`
 }
@@ -185,6 +197,7 @@ func (r *ListPromptsRequestSchema) Params() any {
 	return nil
 }
 
+// prompts/get
 type GetPromptRequestSchema struct {
 	MethodName string                 `json:"method"`
 	ParamsData GetPromptRequestParams `json:"params"`
@@ -201,6 +214,7 @@ func (r *GetPromptRequestSchema) Params() any {
 	return r.ParamsData
 }
 
+// tools/list
 type ListToolsRequestSchema struct {
 	MethodName string `json:"method"`
 }
@@ -212,6 +226,7 @@ func (r *ListToolsRequestSchema) Params() any {
 	return nil
 }
 
+// tools/call
 type CallToolRequestSchema struct {
 	MethodName string                `json:"method"`
 	ParamsData CallToolRequestParams `json:"params"`

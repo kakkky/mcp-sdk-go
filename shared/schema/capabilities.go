@@ -1,6 +1,6 @@
 package schema
 
-// Server
+// Serverが提供する機能を表現するための構造体
 type ServerCapabilities struct {
 	Experimental any `json:"experimental,omitempty"`
 	*Logging     `json:"logging,omitempty"`
@@ -26,7 +26,7 @@ type Tools struct {
 	ListChanged bool `json:"listChanged,omitempty"`
 }
 
-// Client
+// Clientがサポートする機能を表現するための構造体
 type ClientCapabilities struct {
 	Experimental any `json:"experimental,omitempty"`
 	*Sampling    `json:"sampling,omitempty"`
