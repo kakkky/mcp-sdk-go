@@ -84,7 +84,7 @@ func (c *Client) ValidateCapabilities(capability any, method string) error {
 var TransportStartedNotify = make(chan struct{}, 1)
 
 // Initialization phaseが完了し、Operation phaseを開始するための通知チャネル
-var OperationPhaseStartNotify = make(chan struct{}, 1)
+var OperationPhaseStartedNotify = make(chan struct{}, 1)
 
 func (c *Client) Connect(transport protocol.Transport) error {
 	if transport == nil {
@@ -154,7 +154,7 @@ func (c *Client) Connect(transport protocol.Transport) error {
 		}
 		return fmt.Errorf("failed to send initialized notification: %w", err)
 	}
-	OperationPhaseStartNotify <- struct{}{}
+	OperationPhaseStartedNotify <- struct{}{}
 	return nil
 }
 

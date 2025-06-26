@@ -30,7 +30,7 @@ func main() {
 			panic(err)
 		}
 	}()
-	<-server.OperationPhaseStartNotify
+	<-server.OperationPhaseStartedNotify
 	if err := mcpServer.Server.SendLoggingMessage(
 		schema.LoggingMessageNotificationParams{
 			Level: schema.NOTICE,

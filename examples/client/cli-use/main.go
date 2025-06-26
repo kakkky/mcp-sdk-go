@@ -50,7 +50,7 @@ func main() {
 			panic(err)
 		}
 	}()
-	<-client.OperationPhaseStartNotify
+	<-client.OperationPhaseStartedNotify
 	fmt.Println("Initialization complete 🎉 Client is ready to send commands.")
 	_, _ = c.ListTools()
 	_, _ = c.CallTool(schema.CallToolRequestParams{

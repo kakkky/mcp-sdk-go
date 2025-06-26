@@ -279,7 +279,7 @@ func TestClient_Connect(t *testing.T) {
 				if tt.isExpectedErr {
 					return
 				}
-			case <-OperationPhaseStartNotify:
+			case <-OperationPhaseStartedNotify:
 				// serverCapabilitiesを期待通りに設定されているか
 				if diff := cmp.Diff(tt.expectedServerCapabilities, sut.serverCapabilities, cmp.AllowUnexported(Client{})); diff != "" {
 					t.Errorf("Connect() client mismatch (-want +got):\n%s", diff)
