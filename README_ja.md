@@ -253,16 +253,6 @@ mcpServer.Tool(
 | `annotations`    | ツールの動作に関する追加のメタデータ。クライアントがツールの表示方法や管理方法を理解するのに役立つ |
 | `callback`       | ツールの実体。`propertySchema` に定義したような、期待する引数を受け取り、レスポンスに含まれる結果を生成する |
 
-
-また、`Resource`メソッドは`*RegisteredResource`を返します。これをレシーバに、以下のメソッドが用意されています。
-`Update`が呼ばれた場合には、`notifications/tools/list_changed`通知がクライアントに送信されます。
-```go
-Enable       func() // ツールを使用可にする
-Disable      func() // ツールを使用不可にする
-Update       func(ResourceUpdates) // ツールを更新する
-Remove       func() // ツールの登録を削除する
-```
-
 #### 3. Resources
 Resoureは、サーバーからLLMに特定のコンテンツを提供できるようにするものと定義されています（https://modelcontextprotocol.io/docs/concepts/resources）。
 `McpServer`インスタンスから`Resource`メソッドを呼び出します。これにより、`reources/list``resources/read`メソッドに対応できます。
