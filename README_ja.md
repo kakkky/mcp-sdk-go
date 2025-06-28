@@ -9,6 +9,25 @@
 
 注意：MCPのメカニズムをコードベースで知りたいという目的で本SDKは実装に至りました。なので、未対応の機能に対応していくかは未定です。
 
+# Index
+- [Installation](#installation)
+- [Examples](#examples)
+    - [Implement a computational MCP server](#implement-a-computational-mcp-server)
+    - [Implement an interactive client](#implement-an-interactive-client)
+- [How to use](#how-to-use)
+    - [Server (`McpServer` / `Server`)](#server-mcpserver--server)
+        - [\<McpServer>](#mcpserver)
+        - [1. Initialize McpServer](#1-initialize-mcpserver)
+        - [2. Connect to Transport](#2-connect-to-transport)
+        - [3. Tool](#3-tool)
+        - [4. Resources](#4-resources)
+        - [5. Prompt](#5-prompt)
+        - [Server](#server)
+    - [Client](#client)
+        - [1. Initialize Client](#1-initialize-client)
+        - [2. Connecting to Transport](#2-connecting-to-transport)
+        - [3. Send Request to Server](#3-send-request-to-server)
+
 # Installation
 ```
 go get github.com/kakkky/mcp-sdk-go

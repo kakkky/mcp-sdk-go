@@ -11,6 +11,25 @@ However, some features (authentication, SSE, StreamableHTTP) are not yet impleme
 
 Note: This SDK was implemented with the goal of understanding the MCP mechanism at the code level. Therefore, it's undecided whether we will continue to implement the unsupported features.
 
+# Index
+- [Installation](#installation)
+- [Examples](#examples)
+    - [Implement a computational MCP server](#implement-a-computational-mcp-server)
+    - [Implement an interactive client](#implement-an-interactive-client)
+- [How to use](#how-to-use)
+    - [Server (`McpServer` / `Server`)](#server-mcpserver--server)
+        - [\<McpServer>](#mcpserver)
+        - [1. Initialize McpServer](#1-initialize-mcpserver)
+        - [2. Connect to Transport](#2-connect-to-transport)
+        - [3. Tool](#3-tool)
+        - [4. Resources](#4-resources)
+        - [5. Prompt](#5-prompt)
+        - [Server](#server)
+    - [Client](#client)
+        - [1. Initialize Client](#1-initialize-client)
+        - [2. Connecting to Transport](#2-connecting-to-transport)
+        - [3. Send Request to Server](#3-send-request-to-server)
+
 # Installation
 ```
 go get github.com/kakkky/mcp-sdk-go
