@@ -156,10 +156,10 @@ func main() {
 ```
 # How to use
 サーバー、クライアントに分けて使い方を簡単に説明します。
-## Server
+## Server(`McpServer`/`Server`)
 ### McpServer
 
-#### Initialize McpServer
+#### 1. Initialize McpServer
 MCPサーバーインスタンスを初期化します。
 `schema.ServerCapabilities`構造体の中には、あなたのMCPサーバーが提供する機能を埋めてください。たとえば、以下の場合だとResources,Prompts,Completionには対応していますが、Toolsには対応していないことを示します。
 ```go
@@ -185,7 +185,7 @@ mcpServer := mcpserver.NewMcpServer(
 ```
 `McpServer`構造体は、MCPにおけるサーバーの機能の中でも主流な３つ、**リソース**/**ツール**/**プロンプト**を扱うためのシンプルなAPIを提供します。
 
-#### Tool
+#### 2. Tool
 Toolとは、LLMがサーバー経由でアクションを実行できるようにするものと定義されています（https://modelcontextprotocol.io/docs/concepts/tools）。
 `McpServer`インスタンスから`Tool`メソッドを呼び出します。これにより、`tools/list``tools/call`メソッドに対応できます。
 ```go
@@ -262,7 +262,7 @@ Update       func(ResourceUpdates) // ツールを更新する
 Remove       func() // ツールの登録を削除する
 ```
 
-#### Resources
+#### 3. Resources
 Resoureは、サーバーからLLMに特定のコンテンツを提供できるようにするものと定義されています（https://modelcontextprotocol.io/docs/concepts/resources）。
 `McpServer`インスタンスから`Resource`メソッドを呼び出します。これにより、`reources/list``resources/read`メソッドに対応できます。
 ```go
@@ -396,7 +396,7 @@ type RegisteredResourceTemplate struct {
 }
 ```
 
-#### Prompt
+#### 4. Prompt
 Promptとは、サーバーは言語モデルとの対話に必要な構造化されたメッセージと指示を提供できるものと定義されています（https://modelcontextprotocol.io/docs/concepts/prompts）。
 `McpServer`インスタンスから`Prompt`メソッドを呼び出します。これにより、`prompts/list``prompts/get``completion/complete`メソッドに対応できます。
 ```go
