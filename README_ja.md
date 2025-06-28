@@ -11,7 +11,7 @@
 
 # Installation
 ```
- go get github.com/kakkky/mcp-sdk-go
+go get github.com/kakkky/mcp-sdk-go
 ```
 
 # Examples
@@ -159,9 +159,10 @@ func main() {
 # How to use
 サーバー、クライアントに分けて使い方を簡単に説明します。
 ## Server(`McpServer`/`Server`)
-### McpServer
+### <McpServer>
+`McpServer`構造体は、MCPにおけるサーバーの機能の中でも主流な３つ、**リソース**/**ツール**/**プロンプト**を扱うためのシンプルなAPIを提供します。
 
-#### 1. Initialize McpServer
+### 1. Initialize McpServer
 MCPサーバーインスタンスを初期化します。
 `schema.ServerCapabilities`構造体の中には、あなたのMCPサーバーが提供する機能を埋めてください。たとえば、以下の場合だとResources,Prompts,Completionには対応していますが、Toolsには対応していないことを示します。
 ```go
@@ -183,11 +184,72 @@ mcpServer := mcpserver.NewMcpServer(
             },
             Completion: &schema.Completion{},
         },
+        // クライアントにリクエストを送るときに、それをクライアントがCapabilitiesとして宣言しており、対応しているのかをチェックする
+        // このオプションを設定しなければチェックをスキップします。
+        ProtocolOptions: protocol.ProtocolOptions{
+			EnforceStrictCapabilities: true,
+		},
     })
 ```
-`McpServer`構造体は、MCPにおけるサーバーの機能の中でも主流な３つ、**リソース**/**ツール**/**プロンプト**を扱うためのシンプルなAPIを提供します。
 
-#### 2. Tool
+`ProtocolOptions`に関しては、たとえば、初期化フェーズにてクライアントが以下のように`sampling`に対応していないにも関わらずサーバーから`sampling/createMessage`リクエストを送ろうとした場合はエラーを発生させます。
+```json
+{
+  "capabilities": {
+    "roots": {
+      "listChanged": true
+    }
+  }
+}
+```
+このオプションは、`Client`側でも使うことができます。`Client`で使用した際は、これとは反対に、クライアントからサーバーへの送信前に、サーバーが`Capabilities`として宣言しているかどうかをチェックします。
+
+### 2. Connect to Transport
+`McpServer`(`Server`)は`Transport`インターフェースに依存しています。`Transport`インターフェースを満たす具体型を`Connect`メソッドから注入してください。
+```go
+// server用 Stdioトランスポート
+transport := transport.NewStdioServerTransport()
+if err := mcpServer.Connect(transport); err != nil {
+    log.Fatalln(err)
+}
+```
+`Connect`メソッドが呼ばれると、クライアントとの通信を開始し、[初期化フェーズ](https://modelcontextprotocol.io/specification/2025-06-18/basic/lifecycle#initialization)を開始します。
+
+また、`Connect`メソッドはメインスレッドをブロッキングします。後続の処理を続けたい場合は、以下のようにします。
+```go
+transport := transport.NewStdioServerTransport()
+// メインスレッドが終了しないようにする
+wg := sync.WaitGroup{}
+wg.Add(1)
+// goroutine内でConnectを使用
+go func() {
+    defer wg.Done()
+    err := mcpServer.Connect(transport)
+    if err != nil {
+        panic(err)
+    }
+}()
+// 初期化フェーズが正常に終了するまでここでブロッキングし、
+// Operationフェーズが開始できるようになれば後続の処理に移行する
+<-server.OperationPhaseStartedNotify
+
+// 後続の処理
+// 例：ping リクエスト
+result , err:=mcpServer.Server.Ping()
+```
+このチャネルは、メインスレッドの進行を操作するのに非常に重要です。
+```go
+// クライアントから initialized Notification が送られたときにチャネルに通知が送られる
+// この通知を受信後、OperationPhaseが開始できる
+// Connect後にServerからリクエストを送る場合は、このチャネル受信後に行う必要がある
+var OperationPhaseStartedNotify = make(chan struct{}, 1)
+```
+
+Transportについては、現段階では`Stdio`(Standard Input/Output)のみに対応しています。
+参考：https://modelcontextprotocol.io/docs/concepts/transports#transports
+
+
+### 3. Tool
 Toolとは、LLMがサーバー経由でアクションを実行できるようにするものと定義されています（https://modelcontextprotocol.io/docs/concepts/tools）。
 `McpServer`インスタンスから`Tool`メソッドを呼び出します。これにより、`tools/list``tools/call`メソッドに対応できます。
 ```go
@@ -247,7 +309,7 @@ mcpServer.Tool(
 ```
 
 エディタの補完等を利用し、型に従って記述してください。
-| argName          | 説明                                                                                         |
+| argName          |  |
 |------------------|----------------------------------------------------------------------------------------------|
 | `name`           | ツール名                                                                                     |
 | `description`    | ツールの説明                                                                                 |
@@ -255,7 +317,19 @@ mcpServer.Tool(
 | `annotations`    | ツールの動作に関する追加のメタデータ。クライアントがツールの表示方法や管理方法を理解するのに役立つ |
 | `callback`       | ツールの実体。`propertySchema` に定義したような、期待する引数を受け取り、レスポンスに含まれる結果を生成する |
 
-#### 3. Resources
+`Tool`メソッドは`*RegisteredTool`を返します。この構造体には、以下のメソッドフィールドが用意されています。
+`Update`メソッドが呼ばれた場合には、クライアントに`notifications/tools/list_changed`通知を送信します。
+```go
+type RegisteredTool struct {
+    // 他省略
+    Enable         func()
+    Remove         func()
+    Disable        func()
+    Update         func(ToolUpdates)
+}
+```
+
+### 4. Resources
 Resoureは、サーバーからLLMに特定のコンテンツを提供できるようにするものと定義されています（https://modelcontextprotocol.io/docs/concepts/resources）。
 `McpServer`インスタンスから`Resource`メソッドを呼び出します。これにより、`reources/list``resources/read`メソッドに対応できます。
 ```go
@@ -291,7 +365,7 @@ mcpServer.Resource(
 `Resource`メソッドは`*RegisteredResource`を返します。この構造体には、以下のメソッドフィールドが用意されています。
 `Update`メソッドが呼ばれた場合には、クライアントに`notifications/resources/list_changed`通知を送信します。
 ```go
-type RegisteredTool struct {
+type RegisteredResource struct {
     // 他省略
     Enable       func() // リソースを使用可にする
     Disable      func() // リソースを使用不可にする
@@ -391,7 +465,7 @@ type RegisteredResourceTemplate struct {
 }
 ```
 
-#### 4. Prompt
+### 5. Prompt
 Promptとは、サーバーは言語モデルとの対話に必要な構造化されたメッセージと指示を提供できるものと定義されています（https://modelcontextprotocol.io/docs/concepts/prompts）。
 `McpServer`インスタンスから`Prompt`メソッドを呼び出します。これにより、`prompts/list``prompts/get``completion/complete`メソッドに対応できます。
 ```go
@@ -432,7 +506,7 @@ mcpServer.Prompt(
 )
 ```
 
-引数一覧 エディタの補完等を利用し、型に従って記述してください。
+エディタの補完等を利用し、型に従って記述してください。
 |argName| |	
 |----|----|
 |`name` | プロンプト名 |
@@ -450,15 +524,11 @@ type RegisteredPrompt struct {
     Remove       func() // プロンプトの登録を削除する
 }
 ```
-### Server
+### <Server>
 `Server`は、MCPサーバーの基本的な機能を提供しています。上で説明している`McpServer`は、内部で`Server`を使用しています。あくまで`McpServer`はMCPサーバーの基本的機能を提供する`Server`を使いやすくしたもの（Tools/Resources/Promptsに特化して）となります。
 
 以下のように基本的なメソッドを用意しています。
 ```go
-// リクエストを送る
-func (shared.Protocol) Request(request schema.Request, resultSchema any) (schema.Result, error)
-// 通知を送る
-func (shared.Protocol) Notificate(notification schema.Notification) error
 // リクエストハンドラを設定する
 func (shared.Protocol) SetRequestHandler(schema schema.Request, handler func(schema.JsonRpcRequest) (schema.Result, error))
 // 通知ハンドラを設定する
@@ -527,14 +597,99 @@ mcpServer.Server.SetRequestHandler(
     },
 )
 ```
-
-### 
-
 ## Client
 
-# Supported features
+### 1. Initialize Client
+`Client`インスタンスを初期化します。
+```go
+// クライアントインスタンスを作成
+cli := client.NewClient(
+    // クライアントの基本情報
+    schema.Implementation{
+        Name:    "example-client",
+        Version: "1.0.0",
+    },
+    // オプション
+    &client.ClientOptions{
+        // クライアントが提供する機能
+        Capabilities: schema.ClientCapabilities{
+            Roots: &schema.Roots{
+                ListChanged: true,
+            },
+        },
+    },
+)
+```
 
-## Method
+### 2. Connecting to Transport
+`Client`は`Transport`インターフェースに依存しています。`McpServer`（`Server`）と同様に、`Connect`メソッドで具体型を注入します。
+```go
+transportStdio := transport.NewStdioClientTransport(
+    // サーバープログラムの実行コマンド
+    // もちろん言語には依存しない
+    transport.StdioServerParameters{
+        Command: "go",
+        Args:    []string{"run", "./path/to/mcp-server"},
+    },
+)
+// goroutine内でConnect
+go func() {
+    err := cli.Connect(transportStdio)
+    if err != nil {
+        log.Fatalf("Failed to connect to MCP server: %v", err)
+    }
+}()
+// 初期化フェーズが正常に終了するまでここでブロッキングし、
+// Operationフェーズが開始できるようになれば後続の処理に移行する
+<-client.OperationPhaseStartedNotify
+fmt.Println("Initialization complete 🎉 Client is ready to send commands.")
 
-## Transport
+// 後続の処理
+
+```
+このチャネルは、メインスレッドの進行を操作するのに非常に重要です。
+```go
+// Initialization phaseが完了し、Operation phaseを開始するための通知チャネル
+var OperationPhaseStartedNotify = make(chan struct{}, 1)
+```
+
+Transportについては、現段階では`Stdio`(Standard Input/Output)のみに対応しています。
+参考：https://modelcontextprotocol.io/docs/concepts/transports#transports
+
+### 3. Send Request to Server
+サーバーと通信するためのメソッドが用意されており、これを使用します。
+```go
+// tools/list
+func (c *Client) ListTools() (schema.Result, error)
+// tools/call
+func (c *Client) CallTool(params schema.CallToolRequestParams) (schema.Result, error)
+
+// completion/complete
+func (c *Client) Complete(params schema.CompleteRequestParams) (schema.Result, error)
+
+// prompts/list
+func (c *Client) ListPrompts() (schema.Result, error)
+// prompts/get
+func (c *Client) GetPrompt(params schema.GetPromptRequestParams) (schema.Result, error)
+
+// resourecs/list
+func (c *Client) ListResources() (schema.Result, error)
+// resourecs/templates/list
+func (c *Client) ListResourceTemplates() (schema.Result, error)
+// resources/read
+func (c *Client) ReadResource(params schema.ReadResourceRequestParams) (schema.Result, error)
+// resources/subscribe
+func (c *Client) SubscribeResource(params schema.SubscribeRequestParams) (schema.Result, error)
+// resources/unsubscribe
+func (c *Client) UnsubscribeResource(params schema.UnsubscribeRequestParams) (schema.Result, error)
+
+// ping
+func (c *Client) Ping() (schema.Result, error)
+
+// logging/setLevel
+func (c *Client) SetLoggingLevel(level schema.LoggingLevelSchema) (schema.Result, error)
+
+// notifications/roots/list_changed
+func (c *Client) SendRootsListChanged() error
+```
 
