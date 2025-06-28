@@ -1,5 +1,7 @@
 # mcp-sdk-go
 
+![mcp-sdk-go ロゴ](./logo.png)
+
 これは、[modelcontextprotocol/typescript-sdk](https://github.com/modelcontextprotocol/typescript-sdk)のリポジトリを参考にして実装したMCPのSDK(Golang製)となっています。
 このSDKを使用すれば、かなり普及している[modelcontextprotocol/typescript-sdk](https://github.com/modelcontextprotocol/typescript-sdk)とほとんど同じ書き心地で、Goを用いたMCPサーバーの実装が可能になります。Goでリプレースしたと言っても過言ではありません。
 
