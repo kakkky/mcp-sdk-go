@@ -62,7 +62,7 @@ func main() {
 	})
 	// コマンド入力のためのループ
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Enter method :  ")
+	fmt.Print("Enter method :  ")
 	for scanner.Scan() {
 		switch scanner.Text() {
 		case "ping":
@@ -83,7 +83,7 @@ func main() {
 			}
 			fmt.Println("Resources:", resources)
 		}
-		fmt.Println("Enter method :  ")
+		fmt.Print("Enter method :  ")
 	}
 
 }
