@@ -218,10 +218,10 @@ func (s *StdioClientTransport) SetOnError(onError func(error)) {
 	s.onError = onError
 }
 
-// 標準入力でデータを\nごとに受け取り、onDataコールバックを呼び出す
+// 標準出力でデータを\nごとに受け取り、onDataコールバックを呼び出す
 func (s *StdioClientTransport) stdinOnData() {
 	scanner := bufio.NewScanner(s.stdoutPipe)
-	// 標準入力のスキャナーを使用して、データを読み取る
+	// 標準出力のスキャナーを使用して、データを読み取る
 	for scanner.Scan() {
 		data := scanner.Text()
 		// Scannerは改行を含まないので、改行を追加して
