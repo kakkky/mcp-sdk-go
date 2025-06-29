@@ -183,7 +183,7 @@ func main() {
 Here's a brief explanation of how to use the server and client.
 
 ## Server(`McpServer`/`Server`)
-### <McpServer>
+### `McpServer`
 The `McpServer` struct provides a simple API for handling the three main features of MCP: **resources, tools, and prompts**.
 
 ### 1. Initialize McpServer
@@ -537,7 +537,7 @@ type RegisteredPrompt struct {
 }
 ```
 
-### <Server>
+### `Server`
 `Server` provides the basic functionality of an MCP server. The `McpServer` described above internally uses `Server`. `McpServer` is just a more user-friendly wrapper around `Server` (focusing on Tools/Resources/Prompts) that provides the basic functionality of an MCP server.
 
 It provides the following basic methods:

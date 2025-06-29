@@ -178,7 +178,7 @@ func main() {
 # How to use
 サーバー、クライアントに分けて使い方を簡単に説明します。
 ## Server(`McpServer`/`Server`)
-### <McpServer>
+### `McpServer`
 `McpServer`構造体は、MCPにおけるサーバーの機能の中でも主流な３つ、**リソース**/**ツール**/**プロンプト**を扱うためのシンプルなAPIを提供します。
 
 ### 1. Initialize McpServer
@@ -543,7 +543,7 @@ type RegisteredPrompt struct {
     Remove       func() // プロンプトの登録を削除する
 }
 ```
-### <Server>
+### `Server`
 `Server`は、MCPサーバーの基本的な機能を提供しています。上で説明している`McpServer`は、内部で`Server`を使用しています。あくまで`McpServer`はMCPサーバーの基本的機能を提供する`Server`を使いやすくしたもの（Tools/Resources/Promptsに特化して）となります。
 
 以下のように基本的なメソッドを用意しています。
