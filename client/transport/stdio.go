@@ -226,7 +226,7 @@ func (s *StdioClientTransport) stdinOnData() {
 		data := scanner.Text()
 		// Scannerは改行を含まないので、改行を追加して
 		if err := s.onData([]byte(data + "\n")); err != nil {
-			s.OnError(fmt.Errorf("failed to read data from stdin: %w", err))
+			s.OnError(fmt.Errorf("failed to read data from stdout: %w", err))
 			return
 		}
 	}
